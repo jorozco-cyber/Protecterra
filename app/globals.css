@@ -973,3 +973,18 @@ input:disabled {
     transition: none;
   }
 }
+
+/* Los teléfonos agrandan toda la página al tocar un campo con letra pequeña, y la app
+   instalada se queda agrandada. Con campos de 16px eso no pasa. */
+@media (max-width: 900px), (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
