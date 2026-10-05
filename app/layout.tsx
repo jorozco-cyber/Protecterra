@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "ProtecTerra",
   description: "Inventario, ventas, cobros y comisiones.",
   robots: { index: false, follow: false },
+  appleWebApp: { capable: true, title: "ProtecTerra", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#1f4d3a" };
