@@ -25,10 +25,12 @@ export async function POST(req: Request) {
       .toLowerCase();
     const password = String(body.password || "");
     if (!email.includes("@")) return Response.json({ error: "Escribe tu correo." }, { status: 400, headers });
-    if (password.length < 12 || password.length > 128)
-      return Response.json({ error: "Usa una contraseña de entre 12 y 128 caracteres." }, { status: 400, headers });
+    if (!password || password.length > 128)
+      return Response.json({ error: "Escribe tu contraseña." }, { status: 400, headers });
 
     if (body.action === "register") {
+      if (password.length < 12)
+        return Response.json({ error: "Usa una contraseña de al menos 12 caracteres." }, { status: 400, headers });
       const { error } = await sb.auth.signUp({
         email,
         password,

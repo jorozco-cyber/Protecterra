@@ -73,7 +73,7 @@ export default function Login() {
             <input
               type="password"
               required
-              minLength={12}
+              minLength={mode === "register" ? 12 : 1}
               maxLength={128}
               autoComplete={mode === "register" ? "new-password" : "current-password"}
               value={password}
