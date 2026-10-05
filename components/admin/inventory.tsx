@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useApp } from "./app";
-import { save } from "../data";
+import { create, save } from "../data";
 import { Badge, Empty, ErrorNote, Field, Modal, Search, Stat, useSubmit } from "../ui";
 import { date, matches, money, plural, qty } from "@/lib/format";
 import type { Product } from "@/lib/types";
@@ -175,27 +175,54 @@ function ProductDetail({ product, onClose, onEdit }: { product: Product; onClose
   );
 }
 
-function ProductForm({ product, onClose }: { product: Product | null; onClose: () => void }) {
-  const { reload, notify } = useApp();
+/**
+ * Crear o editar un producto. Con `onCreated` se puede abrir desde otra pantalla (por ejemplo una compra)
+ * y recibir el producto recién creado para usarlo ahí mismo.
+ */
+export function ProductForm({
+  product,
+  onClose,
+  onCreated,
+}: {
+  product: Product | null;
+  onClose: () => void;
+  onCreated?: (id: string) => void;
+}) {
+  const { data, reload, notify } = useApp();
   const [name, setName] = useState(product?.name ?? "");
   const [category, setCategory] = useState(product?.category ?? "");
   const [price, setPrice] = useState(product?.unit_price == null ? "" : String(product.unit_price));
   const [min, setMin] = useState(String(product?.min_required ?? 0));
   const [active, setActive] = useState(product?.active ?? true);
   const { busy, error, submit } = useSubmit(async () => {
-    await save(
-      "pt_products",
-      {
-        name: name.trim(),
-        category: category.trim() || null,
-        unit_price: price === "" ? null : Number(price),
-        min_required: Number(min) || 0,
-        active,
-      },
-      product?.id,
-    );
+    const values = {
+      name: name.trim(),
+      category: category.trim() || null,
+      unit_price: price === "" ? null : Number(price),
+      min_required: Number(min) || 0,
+      active,
+    };
+    if (product) {
+      await save("pt_products", values, product.id);
+      await reload();
+      notify("Producto actualizado");
+      return;
+    }
+    // Evita duplicar un producto que ya existe con el mismo nombre y presentación.
+    const same = (a: string | null, b: string | null) =>
+      (a ?? "").trim().toLowerCase() === (b ?? "").trim().toLowerCase();
+    const twin = data.products.find((p) => same(p.name, values.name) && same(p.category, values.category));
+    if (twin) {
+      throw new Error(
+        twin.active
+          ? "Ya existe un producto con ese nombre y presentación."
+          : "Ya existe un producto con ese nombre y presentación, pero está inactivo. Actívalo desde Inventario → Inactivos.",
+      );
+    }
+    const id = await create("pt_products", values);
     await reload();
-    notify(product ? "Producto actualizado" : "Producto creado");
+    notify("Producto creado");
+    onCreated?.(id);
   }, onClose);
   return (
     <Modal title={product ? "Editar producto" : "Nuevo producto"} onClose={onClose}>

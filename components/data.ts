@@ -113,6 +113,13 @@ export async function save(table: string, values: Record<string, unknown>, id?: 
   if (error) throw new Error(message(error));
 }
 
+/** Crea una fila de catálogo y devuelve su id, para poder usarla de inmediato. */
+export async function create(table: string, values: Record<string, unknown>): Promise<string> {
+  const { data, error } = await supabaseBrowser().from(table).insert(values).select("id").single();
+  if (error || !data) throw new Error(message(error));
+  return (data as { id: string }).id;
+}
+
 export async function saveSetting(key: string, value: unknown): Promise<void> {
   const { error } = await supabaseBrowser()
     .from("pt_settings")
