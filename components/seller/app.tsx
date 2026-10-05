@@ -42,7 +42,7 @@ export default function SellerApp({ email }: { email: string }) {
     <div className="seller">
       <header className="seller-head">
         <div>
-          <span className="brand-small">Protecterra</span>
+          <img className="seller-logo" src="/logo-blanco-simple.svg" alt="ProtecTerra" width={518} height={177} />
           <h1>{portal?.seller.name ?? "Mi portal"}</h1>
         </div>
         <button className="btn small" onClick={logout}>

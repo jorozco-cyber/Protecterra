@@ -121,12 +121,11 @@ export default function AdminApp({ email }: { email: string }) {
           ☰
         </button>
         <span className="topbar-title">{current.label}</span>
-        <span className="brand-small">Protecterra</span>
+        <img className="topbar-logo" src="/logo-blanco-simple.svg" alt="ProtecTerra" width={518} height={177} />
       </header>
       <nav className={"sidebar" + (menu ? " open" : "")} aria-label="Secciones">
         <div className="sidebar-brand">
-          <span className="brand-dot" aria-hidden="true" />
-          Protecterra
+          <img src="/logo-blanco-simple.svg" alt="ProtecTerra" width={518} height={177} />
         </div>
         {groups.map((g) => (
           <div key={g} className="nav-group">
