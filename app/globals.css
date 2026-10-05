@@ -113,19 +113,28 @@ textarea {
   z-index: 30;
 }
 .sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-  font-size: 1.15rem;
-  padding: 4px 10px;
+  padding: 2px 10px 6px;
 }
-.brand-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50% 50% 50% 0;
-  background: #b9d8a8;
-  transform: rotate(-45deg);
+.sidebar-brand img {
+  display: block;
+  width: 100%;
+  max-width: 196px;
+  height: auto;
+}
+.topbar-logo {
+  height: 30px;
+  width: auto;
+}
+.seller-logo {
+  display: block;
+  height: 34px;
+  width: auto;
+  margin-bottom: 6px;
+}
+.login-logo {
+  width: min(380px, 100%);
+  height: auto;
+  margin-bottom: 10px;
 }
 .nav-title {
   font-size: 0.7rem;

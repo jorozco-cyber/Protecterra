@@ -5,7 +5,7 @@ import "./globals.css";
 const sans = Figtree({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Protecterra",
+  title: "ProtecTerra",
   description: "Inventario, ventas, cobros y comisiones.",
   robots: { index: false, follow: false },
 };

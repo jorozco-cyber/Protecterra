@@ -34,19 +34,13 @@ export default function Login() {
   return (
     <main className="login">
       <aside className="login-brand">
-        <div className="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 64 64" width="44" height="44">
-            <path
-              d="M32 52V30m0 0c0-10 7-17 17-18 0 10-7 17-17 18Zm0 7c0-8-6-14-15-15 0 9 6 15 15 15Z"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-        <p className="eyebrow">PROTECTERRA</p>
+        <img
+          className="login-logo"
+          src="/logo-blanco.svg"
+          alt="ProtecTerra · Nutriendo el Éxito del Campo"
+          width={518}
+          height={177}
+        />
         <h1>Inventario, ventas y cobros en un solo lugar.</h1>
         <p>Acceso privado para administración y vendedores autorizados.</p>
       </aside>
