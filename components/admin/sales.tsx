@@ -3,12 +3,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useApp } from "./app";
 import { call, save } from "../data";
 import { Badge, Empty, ErrorNote, Field, FileLink, Modal, Search, Stat, VoidDialog, useSubmit } from "../ui";
-import { addDays, date, matches, money, pct, qty, today } from "@/lib/format";
+import { addDays, date, matches, money, pct, plural, qty, today } from "@/lib/format";
 import { fifoPreview } from "@/lib/calc";
 import type { Sale, SaleExpense, SalePayment } from "@/lib/types";
 
 export default function Sales() {
-  const { data, focus, clearFocus } = useApp();
+  const { data, focus, clearFocus, go } = useApp();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"todas" | "pendientes" | "vencidas" | "anuladas">("todas");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -40,6 +40,9 @@ export default function Sales() {
       <div className="page-head">
         <h1>Ventas</h1>
         <div className="head-actions">
+          <button className="btn" onClick={() => go("cobros", "estado")}>
+            Estado de cuentas (PDF)
+          </button>
           <button className="btn primary" onClick={() => setCreating(true)}>
             Nueva venta
           </button>
@@ -117,6 +120,16 @@ export default function Sales() {
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td>{plural(rows.length, "factura", "facturas")}</td>
+              <td className="hide-sm" />
+              <td className="num">{money(rows.reduce((a, s) => a + s.total, 0))}</td>
+              <td className="num">{money(rows.reduce((a, s) => a + (s.voided_at ? 0 : s.balance), 0))}</td>
+              <td className="num hide-sm">{money(rows.reduce((a, s) => a + (s.voided_at ? 0 : s.net_profit), 0))}</td>
+            </tr>
+          </tfoot>
         </table>
         {rows.length === 0 && <Empty>No hay ventas con ese filtro.</Empty>}
         {rows.length > shown.length && (
@@ -226,6 +239,15 @@ export function SaleDetail({ sale, onClose }: { sale: Sale; onClose: () => void 
             </tr>
           ))}
         </tbody>
+        <tfoot>
+          <tr>
+            <td>Total</td>
+            <td className="num">{qty(lines.reduce((a, l) => a + l.qty, 0))}</td>
+            <td className="num hide-sm" />
+            <td className="num">{money(sale.total)}</td>
+            <td className="num hide-sm">{money(sale.cost)}</td>
+          </tr>
+        </tfoot>
       </table>
 
       <div className="card-head">
@@ -255,6 +277,13 @@ export function SaleDetail({ sale, onClose }: { sale: Sale; onClose: () => void 
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td>Total de gastos</td>
+              <td className="num">{money(sale.expenses)}</td>
+              <td />
+            </tr>
+          </tfoot>
         </table>
       )}
 
@@ -324,6 +353,14 @@ export function SaleDetail({ sale, onClose }: { sale: Sale; onClose: () => void 
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td>Total cobrado</td>
+              <td />
+              <td className="num">{money(sale.paid)}</td>
+              <td />
+            </tr>
+          </tfoot>
         </table>
       )}
 

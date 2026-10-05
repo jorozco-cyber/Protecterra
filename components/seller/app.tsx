@@ -5,6 +5,7 @@ import { loadPortal } from "../data";
 import { Badge, Empty, Modal, Search, Stat, logout } from "../ui";
 import { date, matches, money, pct, plural, qty } from "@/lib/format";
 import { agingByCustomer } from "@/lib/calc";
+import StatementDialog from "../statement-dialog";
 
 type Tab = "atrasos" | "ventas" | "comisiones";
 
@@ -14,6 +15,7 @@ export default function SellerApp({ email }: { email: string }) {
   const [tab, setTab] = useState<Tab>("atrasos");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<PortalSale | null>(null);
+  const [statement, setStatement] = useState(false);
 
   useEffect(() => {
     loadPortal()
@@ -37,6 +39,7 @@ export default function SellerApp({ email }: { email: string }) {
 
   const phone = (id: string) => portal?.customers.find((c) => c.id === id)?.phone ?? null;
   const filtered = view.sales.filter((s) => !query || matches(`${s.customer_name} ${s.invoice_number ?? ""}`, query));
+  const commissionRows = filtered.filter((s) => Math.abs(s.commission) > 0.005);
 
   return (
     <div className="seller">
@@ -91,6 +94,11 @@ export default function SellerApp({ email }: { email: string }) {
                   </button>
                 ))}
               </div>
+              {tab === "atrasos" && (
+                <button className="btn primary" onClick={() => setStatement(true)}>
+                  Estado de cuentas (PDF)
+                </button>
+              )}
               {tab !== "atrasos" && <Search value={query} onChange={setQuery} placeholder="Buscar cliente o factura" />}
             </div>
 
@@ -127,6 +135,13 @@ export default function SellerApp({ email }: { email: string }) {
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>Total · {plural(view.aging.length, "cliente", "clientes")}</td>
+                      <td className="num">{money(view.receivable)}</td>
+                      <td />
+                    </tr>
+                  </tfoot>
                 </table>
                 {view.aging.length === 0 && <Empty>Ninguno de tus clientes tiene saldo pendiente.</Empty>}
               </div>
@@ -169,6 +184,14 @@ export default function SellerApp({ email }: { email: string }) {
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>Total</td>
+                      <td>{plural(filtered.length, "factura", "facturas")}</td>
+                      <td className="num hide-sm">{money(filtered.reduce((a, s) => a + s.total, 0))}</td>
+                      <td className="num">{money(filtered.reduce((a, s) => a + s.balance, 0))}</td>
+                    </tr>
+                  </tfoot>
                 </table>
                 {filtered.length === 0 && <Empty>No hay ventas con esa búsqueda.</Empty>}
               </div>
@@ -186,28 +209,33 @@ export default function SellerApp({ email }: { email: string }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered
-                      .filter((s) => Math.abs(s.commission) > 0.005)
-                      .slice(0, 300)
-                      .map((s) => (
-                        <tr key={s.id}>
-                          <td>
-                            {s.invoice_number ?? "s/n"}
-                            <small>{date(s.sale_date)}</small>
-                          </td>
-                          <td>
-                            {s.customer_name}
-                            <small>{s.balance <= 0.005 ? "Venta cobrada" : "Venta por cobrar"}</small>
-                          </td>
-                          <td className="num">{money(s.commission)}</td>
-                          <td>
-                            <Badge tone={s.commission_status === "pagado" ? "ok" : "warn"}>
-                              {s.commission_status === "pagado" ? "Pagada" : "Pendiente"}
-                            </Badge>
-                          </td>
-                        </tr>
-                      ))}
+                    {commissionRows.slice(0, 300).map((s) => (
+                      <tr key={s.id}>
+                        <td>
+                          {s.invoice_number ?? "s/n"}
+                          <small>{date(s.sale_date)}</small>
+                        </td>
+                        <td>
+                          {s.customer_name}
+                          <small>{s.balance <= 0.005 ? "Venta cobrada" : "Venta por cobrar"}</small>
+                        </td>
+                        <td className="num">{money(s.commission)}</td>
+                        <td>
+                          <Badge tone={s.commission_status === "pagado" ? "ok" : "warn"}>
+                            {s.commission_status === "pagado" ? "Pagada" : "Pendiente"}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>Total</td>
+                      <td />
+                      <td className="num">{money(commissionRows.reduce((a, s) => a + s.commission, 0))}</td>
+                      <td />
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             )}
@@ -215,6 +243,9 @@ export default function SellerApp({ email }: { email: string }) {
         )}
         <p className="muted small center">{email}</p>
       </main>
+      {statement && portal && (
+        <StatementDialog sales={view.pending} fixedSeller={portal.seller.name} onClose={() => setStatement(false)} />
+      )}
       {open && (
         <Modal
           title={`Factura ${open.invoice_number ?? "s/n"} · ${open.customer_name}`}
@@ -261,6 +292,13 @@ export default function SellerApp({ email }: { email: string }) {
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr>
+                <td>Total</td>
+                <td />
+                <td className="num">{money(open.total)}</td>
+              </tr>
+            </tfoot>
           </table>
           <h3>Cobros</h3>
           {open.payments.length === 0 ? (
@@ -276,6 +314,13 @@ export default function SellerApp({ email }: { email: string }) {
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr>
+                  <td>Total cobrado</td>
+                  <td />
+                  <td className="num">{money(open.paid)}</td>
+                </tr>
+              </tfoot>
             </table>
           )}
         </Modal>

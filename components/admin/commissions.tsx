@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useApp } from "./app";
 import { call, save } from "../data";
 import { Badge, Empty, ErrorNote, Field, Modal, Stat, useSubmit } from "../ui";
-import { date, money, pct, today } from "@/lib/format";
+import { date, money, pct, plural, today } from "@/lib/format";
 import type { Seller } from "@/lib/types";
 
 export default function Commissions() {
@@ -155,6 +155,16 @@ export default function Commissions() {
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot>
+                    <tr>
+                      <td />
+                      <td>Total</td>
+                      <td>{plural(pending.length, "venta", "ventas")}</td>
+                      <td className="num hide-sm">{money(pending.reduce((a, s) => a + s.gross_profit, 0))}</td>
+                      <td className="num">{money(pending.reduce((a, s) => a + s.commission, 0))}</td>
+                      <td />
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             )}
@@ -174,6 +184,13 @@ export default function Commissions() {
                     </tr>
                   ))}
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td>Total pagado</td>
+                    <td />
+                    <td className="num">{money(payments.reduce((a, p) => a + p.amount, 0))}</td>
+                  </tr>
+                </tfoot>
               </table>
             )}
           </section>

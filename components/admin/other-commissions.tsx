@@ -80,6 +80,18 @@ export default function OtherCommissions() {
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td />
+              <td className="num hide-sm">
+                {money(rows.reduce((a, c) => a + c.agroquim_billing * c.agroquim_rate, 0))}
+              </td>
+              <td className="num hide-sm">{money(rows.reduce((a, c) => a + c.other_billing * c.other_rate, 0))}</td>
+              <td className="num">{money(rows.reduce((a, c) => a + total(c), 0))}</td>
+              <td />
+            </tr>
+          </tfoot>
         </table>
         {rows.length === 0 && <Empty>Sin comisiones registradas.</Empty>}
       </div>

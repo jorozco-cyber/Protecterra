@@ -1,19 +1,26 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useApp } from "./app";
 import { SaleDetail, SalePaymentForm } from "./sales";
 import { Badge, Empty, Modal, Search, Stat } from "../ui";
 import { date, matches, money, plural } from "@/lib/format";
 import { AGING_LABELS, agingByCustomer, type AgingBucket, type CustomerAging } from "@/lib/calc";
 import type { Sale } from "@/lib/types";
+import StatementDialog, { type DialogSale } from "../statement-dialog";
 
 const BUCKETS: AgingBucket[] = ["al_dia", "d1_30", "d31_60", "d61_90", "d90"];
 
 export default function Receivables() {
-  const { data } = useApp();
+  const { data, focus, clearFocus } = useApp();
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<"cartera" | "cobros">("cartera");
   const [customer, setCustomer] = useState<CustomerAging | null>(null);
+  const [statement, setStatement] = useState(false);
+  useEffect(() => {
+    if (focus !== "estado") return;
+    setStatement(true);
+    clearFocus();
+  }, [focus, clearFocus]);
   const sales = useMemo(() => data.sales.filter((s) => !s.voided_at), [data.sales]);
   const aging = useMemo(() => agingByCustomer(sales), [sales]);
   const rows = aging.filter((r) => !query || matches(r.customer_name, query));
@@ -24,14 +31,27 @@ export default function Receivables() {
     () => data.salePayments.filter((p) => !p.voided_at).sort((a, b) => b.paid_on.localeCompare(a.paid_on)),
     [data.salePayments],
   );
-  const shownPayments = payments
-    .filter((p) => !query || matches(saleById.get(p.sale_id)?.customer_name ?? "", query))
-    .slice(0, 200);
+  const filteredPayments = payments.filter(
+    (p) => !query || matches(saleById.get(p.sale_id)?.customer_name ?? "", query),
+  );
+  const shownPayments = filteredPayments.slice(0, 200);
+  const statementSales = useMemo<DialogSale[]>(
+    () =>
+      sales
+        .filter((s) => s.balance > 0.005)
+        .map((s) => ({ ...s, payments: payments.filter((p) => p.sale_id === s.id).reverse() })),
+    [sales, payments],
+  );
 
   return (
     <div className="page">
       <div className="page-head">
         <h1>Cobros y cartera</h1>
+        <div className="head-actions">
+          <button className="btn primary" onClick={() => setStatement(true)}>
+            Estado de cuentas (PDF)
+          </button>
+        </div>
       </div>
       <div className="stats">
         <Stat label="Por cobrar" value={money(total)} hint={`${aging.length} clientes con saldo`} />
@@ -106,6 +126,18 @@ export default function Receivables() {
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr>
+                <td>Total · {plural(rows.length, "cliente", "clientes")}</td>
+                <td className="num">{money(rows.reduce((a, r) => a + r.balance, 0))}</td>
+                {BUCKETS.map((b) => (
+                  <td key={b} className="num hide-sm">
+                    {money(rows.reduce((a, r) => a + r.buckets[b], 0))}
+                  </td>
+                ))}
+                <td />
+              </tr>
+            </tfoot>
           </table>
           {rows.length === 0 && <Empty>No hay saldos pendientes.</Empty>}
         </div>
@@ -136,11 +168,26 @@ export default function Receivables() {
                 );
               })}
             </tbody>
+            <tfoot>
+              <tr>
+                <td>Total</td>
+                <td>{plural(filteredPayments.length, "cobro", "cobros")}</td>
+                <td className="hide-sm" />
+                <td className="num">{money(filteredPayments.reduce((a, p) => a + p.amount, 0))}</td>
+              </tr>
+            </tfoot>
           </table>
           {shownPayments.length === 0 && <Empty>No hay cobros.</Empty>}
         </div>
       )}
       {customer && <Statement aging={customer} onClose={() => setCustomer(null)} />}
+      {statement && (
+        <StatementDialog
+          sales={statementSales}
+          sellers={data.sellers.filter((s) => sales.some((x) => x.seller_id === s.id && x.balance > 0.005))}
+          onClose={() => setStatement(false)}
+        />
+      )}
     </div>
   );
 }
@@ -198,6 +245,16 @@ function Statement({ aging, onClose }: { aging: CustomerAging; onClose: () => vo
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td className="hide-sm" />
+              <td />
+              <td className="num hide-sm">{money(pending.reduce((a, s) => a + s.total, 0))}</td>
+              <td className="num">{money(balance)}</td>
+              <td />
+            </tr>
+          </tfoot>
         </table>
       )}
       {paying && <SalePaymentForm sale={paying} onClose={() => setPaying(null)} />}

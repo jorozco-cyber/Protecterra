@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useApp } from "./app";
 import { save } from "../data";
 import { Badge, Empty, ErrorNote, Field, Modal, Search, Stat, useSubmit } from "../ui";
-import { date, matches, money, qty } from "@/lib/format";
+import { date, matches, money, plural, qty } from "@/lib/format";
 import type { Product } from "@/lib/types";
 
 export default function Inventory() {
@@ -96,6 +96,16 @@ export default function Inventory() {
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td>Total · {plural(rows.length, "producto", "productos")}</td>
+              <td className="num">{qty(rows.reduce((a, p) => a + p.qty_available, 0))}</td>
+              <td className="num hide-sm" />
+              <td className="num hide-sm">{qty(rows.reduce((a, p) => a + p.qty_sold, 0))}</td>
+              <td className="num">{money(rows.reduce((a, p) => a + p.stock_value, 0))}</td>
+              <td className="num hide-sm" />
+            </tr>
+          </tfoot>
         </table>
         {rows.length === 0 && <Empty>No hay productos con ese filtro.</Empty>}
       </div>
@@ -145,6 +155,14 @@ function ProductDetail({ product, onClose, onEdit }: { product: Product; onClose
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td />
+              <td className="num">{qty(withStock.reduce((a, l) => a + l.qty_available, 0))}</td>
+              <td className="num">{money(withStock.reduce((a, l) => a + l.qty_available * l.unit_cost, 0))}</td>
+            </tr>
+          </tfoot>
         </table>
       )}
       <p className="muted small">{lots.length - withStock.length} lotes anteriores ya se agotaron.</p>

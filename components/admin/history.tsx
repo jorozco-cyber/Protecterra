@@ -77,6 +77,14 @@ export default function HistoryView() {
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td />
+                  <td />
+                  <td className="num">{money(siembra.reduce((a, h) => a + num(raw(h.data, "field_236")), 0))}</td>
+                </tr>
+              </tfoot>
             </table>
             {siembra.length === 0 && <Empty>Sin registros.</Empty>}
           </div>
@@ -118,6 +126,18 @@ export default function HistoryView() {
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td className="num">{qty(tomate.reduce((a, h) => a + num(raw(h.data, "field_385")), 0))}</td>
+                  <td className="num hide-sm" />
+                  <td className="num">{money(tomate.reduce((a, h) => a + num(raw(h.data, "field_387")), 0))}</td>
+                  <td className="num hide-sm">
+                    {money(tomate.reduce((a, h) => a + num(raw(h.data, "field_388")), 0))}
+                  </td>
+                  <td className="num">{money(tomate.reduce((a, h) => a + num(raw(h.data, "field_389")), 0))}</td>
+                </tr>
+              </tfoot>
             </table>
             {tomate.length === 0 && <Empty>Sin registros.</Empty>}
           </div>
@@ -154,6 +174,15 @@ export default function HistoryView() {
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td />
+                  <td />
+                  <td className="num">{money(superior.reduce((a, s) => a + s.superior_commission, 0))}</td>
+                  <td />
+                </tr>
+              </tfoot>
             </table>
             {superior.length === 0 && <Empty>Sin registros.</Empty>}
           </div>

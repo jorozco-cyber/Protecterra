@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useApp } from "./app";
 import { save } from "../data";
 import { Empty, ErrorNote, Field, Modal, Search, useSubmit } from "../ui";
-import { matches, money } from "@/lib/format";
+import { matches, money, plural } from "@/lib/format";
 import type { Customer } from "@/lib/types";
 
 export default function Customers() {
@@ -68,6 +68,15 @@ export default function Customers() {
               );
             })}
           </tbody>
+          <tfoot>
+            <tr>
+              <td>Total · {plural(rows.length, "cliente", "clientes")}</td>
+              <td className="hide-sm" />
+              <td className="num hide-sm">{rows.reduce((a, c) => a + (stats.get(c.id)?.count ?? 0), 0)}</td>
+              <td className="num">{money(rows.reduce((a, c) => a + (stats.get(c.id)?.total ?? 0), 0))}</td>
+              <td className="num">{money(rows.reduce((a, c) => a + (stats.get(c.id)?.balance ?? 0), 0))}</td>
+            </tr>
+          </tfoot>
         </table>
         {rows.length === 0 && <Empty>No hay clientes con ese nombre.</Empty>}
       </div>
