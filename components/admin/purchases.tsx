@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useApp } from "./app";
 import { call } from "../data";
+import { ProductForm } from "./inventory";
 import { Badge, Empty, ErrorNote, Field, FileLink, Modal, Search, Stat, VoidDialog, useSubmit } from "../ui";
 import { addDays, date, matches, money, plural, qty, today } from "@/lib/format";
 import type { Purchase, PurchasePayment } from "@/lib/types";
@@ -363,8 +364,10 @@ function PurchaseForm({ onClose }: { onClose: () => void }) {
   const [lots, setLots] = useState<LotDraft[]>([{ key: 1, product_id: "", qty: "", unit_cost: "" }]);
   const products = data.products.filter((p) => p.active);
   const total = lots.reduce((a, l) => a + (Number(l.qty) || 0) * (Number(l.unit_cost) || 0), 0);
+  // Línea de la compra desde la que se está registrando un producto nuevo.
+  const [newProductFor, setNewProductFor] = useState<number | null>(null);
   const update = (key: number, patch: Partial<LotDraft>) =>
-    setLots(lots.map((l) => (l.key === key ? { ...l, ...patch } : l)));
+    setLots((prev) => prev.map((l) => (l.key === key ? { ...l, ...patch } : l)));
 
   const { busy, error, submit } = useSubmit(async () => {
     await call("pt_create_purchase", {
@@ -448,8 +451,15 @@ function PurchaseForm({ onClose }: { onClose: () => void }) {
         {lots.map((l) => (
           <div className="line" key={l.key}>
             <Field label="Producto" className="grow">
-              <select value={l.product_id} onChange={(e) => update(l.key, { product_id: e.target.value })} required>
+              <select
+                value={l.product_id}
+                onChange={(e) =>
+                  e.target.value === "new" ? setNewProductFor(l.key) : update(l.key, { product_id: e.target.value })
+                }
+                required
+              >
                 <option value="">Selecciona…</option>
+                <option value="new">+ Nuevo producto</option>
                 {products.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
@@ -514,6 +524,13 @@ function PurchaseForm({ onClose }: { onClose: () => void }) {
           </button>
         </div>
       </form>
+      {newProductFor !== null && (
+        <ProductForm
+          product={null}
+          onClose={() => setNewProductFor(null)}
+          onCreated={(id) => update(newProductFor, { product_id: id })}
+        />
+      )}
     </Modal>
   );
 }
