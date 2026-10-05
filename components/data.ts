@@ -130,3 +130,35 @@ export async function saveSetting(key: string, value: unknown): Promise<void> {
 export async function loadPortal(): Promise<Portal> {
   return call<Portal>("pt_seller_portal", {});
 }
+
+const FILE_BUCKET = "protecterra";
+export const FILE_ACCEPT = "application/pdf,image/jpeg,image/png,image/webp";
+
+/** Dirección temporal (5 minutos) para abrir un archivo guardado en el almacén propio. */
+export async function fileUrl(path: string): Promise<string> {
+  const { data, error } = await supabaseBrowser().storage.from(FILE_BUCKET).createSignedUrl(path, 300);
+  if (error || !data?.signedUrl) throw new Error("No se pudo abrir el archivo. Intenta de nuevo.");
+  return data.signedUrl;
+}
+
+/** Sube una factura, recibo o comprobante y lo deja ligado a su registro. El archivo anterior no se borra. */
+export async function attachFile(table: string, id: string, column: string, file: File): Promise<void> {
+  if (!FILE_ACCEPT.split(",").includes(file.type)) throw new Error("Solo se aceptan PDF o fotos (JPG, PNG).");
+  if (file.size > 10 * 1024 * 1024) throw new Error("El archivo pesa más de 10 MB.");
+  const safe =
+    file.name
+      .normalize("NFKD")
+      .replace(/[^\w.\-]+/g, "_")
+      .slice(-80) || "archivo";
+  const path = `${table}/${id}/${column}/${Date.now()}-${safe}`;
+  const sb = supabaseBrowser();
+  const up = await sb.storage.from(FILE_BUCKET).upload(path, file, { contentType: file.type });
+  if (up.error) throw new Error("No se pudo subir el archivo. Revisa tu conexión e intenta de nuevo.");
+  const { error } = await sb
+    .from(table)
+    .update({
+      [column]: { filename: file.name, path, size: file.size, mime: file.type, uploaded_at: new Date().toISOString() },
+    })
+    .eq("id", id);
+  if (error) throw new Error(message(error));
+}

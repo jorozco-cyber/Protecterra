@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useApp } from "./app";
 import { call } from "../data";
 import { ProductForm } from "./inventory";
-import { Badge, Empty, ErrorNote, Field, FileLink, Modal, Search, Stat, VoidDialog, useSubmit } from "../ui";
+import { Badge, Empty, ErrorNote, Field, FileSlot, Modal, Search, Stat, VoidDialog, useSubmit } from "../ui";
 import { addDays, date, matches, money, plural, qty, today } from "@/lib/format";
 import type { Purchase, PurchasePayment } from "@/lib/types";
 
@@ -139,6 +139,10 @@ function PurchaseDetail({ purchase, onClose }: { purchase: Purchase; onClose: ()
   const [voidPayment, setVoidPayment] = useState<PurchasePayment | null>(null);
   const lots = data.lots.filter((l) => l.purchase_id === purchase.id);
   const payments = data.purchasePayments.filter((p) => p.purchase_id === purchase.id);
+  const fileSaved = async () => {
+    await reload();
+    notify("Archivo guardado");
+  };
   return (
     <Modal title={`Compra · ${purchase.supplier_name ?? "Sin proveedor"}`} onClose={onClose} wide>
       {purchase.voided_at && <p className="note danger">Compra anulada: {purchase.voided_reason}</p>}
@@ -166,8 +170,24 @@ function PurchaseDetail({ purchase, onClose }: { purchase: Purchase; onClose: ()
         </div>
       </dl>
       <p className="files">
-        <FileLink file={purchase.invoice_file} label="Factura" />
-        <FileLink file={purchase.receipt_file} label="Comprobante" />
+        <FileSlot
+          file={purchase.invoice_file}
+          label="Factura"
+          table="pt_purchases"
+          id={purchase.id}
+          column="invoice_file"
+          locked={!!purchase.voided_at}
+          onSaved={fileSaved}
+        />
+        <FileSlot
+          file={purchase.receipt_file}
+          label="Comprobante"
+          table="pt_purchases"
+          id={purchase.id}
+          column="receipt_file"
+          locked={!!purchase.voided_at}
+          onSaved={fileSaved}
+        />
       </p>
       <h3>Productos</h3>
       <table className="table">
@@ -217,7 +237,16 @@ function PurchaseDetail({ purchase, onClose }: { purchase: Purchase; onClose: ()
                 <td>
                   {p.description ?? "abono"}
                   <small>
-                    {p.method ?? ""} <FileLink file={p.file} label="Comprobante" />
+                    {p.method ?? ""}{" "}
+                    <FileSlot
+                      file={p.file}
+                      label="Comprobante"
+                      table="pt_purchase_payments"
+                      id={p.id}
+                      column="file"
+                      locked={!!p.voided_at || !!purchase.voided_at}
+                      onSaved={fileSaved}
+                    />
                   </small>
                 </td>
                 <td className="num">{money(p.amount)}</td>
