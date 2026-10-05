@@ -132,6 +132,18 @@ export default function Reports() {
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr>
+                <td>Total</td>
+                <td className="num">{money(sum((m) => m.sales))}</td>
+                <td className="num hide-sm">{money(sum((m) => m.cost))}</td>
+                <td className="num hide-sm">{money(sum((m) => m.expenses))}</td>
+                <td className="num hide-sm">{money(sum((m) => m.gross))}</td>
+                <td className="num hide-sm">{money(sum((m) => m.commissions))}</td>
+                <td className="num">{money(sum((m) => m.net))}</td>
+                <td className="num">{money(sum((m) => m.collected))}</td>
+              </tr>
+            </tfoot>
           </table>
         )}
         {tab === "producto" && (
@@ -156,6 +168,15 @@ export default function Reports() {
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr>
+                <td>Total</td>
+                <td className="num">{qty(byProduct.reduce((a, p) => a + p.qty, 0))}</td>
+                <td className="num">{money(byProduct.reduce((a, p) => a + p.total, 0))}</td>
+                <td className="num hide-sm">{money(byProduct.reduce((a, p) => a + p.cost, 0))}</td>
+                <td className="num">{money(byProduct.reduce((a, p) => a + p.total - p.cost, 0))}</td>
+              </tr>
+            </tfoot>
           </table>
         )}
         {tab === "cliente" && (
@@ -180,6 +201,15 @@ export default function Reports() {
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr>
+                <td>Total</td>
+                <td className="num hide-sm">{byCustomer.reduce((a, c) => a + c.count, 0)}</td>
+                <td className="num">{money(byCustomer.reduce((a, c) => a + c.total, 0))}</td>
+                <td className="num hide-sm">{money(byCustomer.reduce((a, c) => a + c.net, 0))}</td>
+                <td className="num">{money(byCustomer.reduce((a, c) => a + c.balance, 0))}</td>
+              </tr>
+            </tfoot>
           </table>
         )}
         {sales.length === 0 && <Empty>No hay ventas en ese período.</Empty>}

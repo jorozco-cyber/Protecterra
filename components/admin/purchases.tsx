@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useApp } from "./app";
 import { call } from "../data";
 import { Badge, Empty, ErrorNote, Field, FileLink, Modal, Search, Stat, VoidDialog, useSubmit } from "../ui";
-import { addDays, date, matches, money, qty, today } from "@/lib/format";
+import { addDays, date, matches, money, plural, qty, today } from "@/lib/format";
 import type { Purchase, PurchasePayment } from "@/lib/types";
 
 export default function Purchases() {
@@ -112,6 +112,16 @@ export default function Purchases() {
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td>{plural(rows.length, "compra", "compras")}</td>
+              <td className="hide-sm" />
+              <td className="num">{money(rows.reduce((a, p) => a + p.total, 0))}</td>
+              <td className="num">{money(rows.reduce((a, p) => a + (p.voided_at ? 0 : p.balance), 0))}</td>
+              <td className="hide-sm" />
+            </tr>
+          </tfoot>
         </table>
         {rows.length === 0 && <Empty>No hay compras con ese filtro.</Empty>}
       </div>
@@ -183,6 +193,15 @@ function PurchaseDetail({ purchase, onClose }: { purchase: Purchase; onClose: ()
             </tr>
           ))}
         </tbody>
+        <tfoot>
+          <tr>
+            <td>Total</td>
+            <td className="num">{qty(purchase.units)}</td>
+            <td className="num hide-sm" />
+            <td className="num">{money(purchase.total)}</td>
+            <td className="num hide-sm">{qty(lots.reduce((a, l) => a + l.qty_available, 0))}</td>
+          </tr>
+        </tfoot>
       </table>
       <h3>Pagos</h3>
       {purchase.initial_payment > 0 && <p className="muted small">Abono inicial: {money(purchase.initial_payment)}</p>}
@@ -215,6 +234,14 @@ function PurchaseDetail({ purchase, onClose }: { purchase: Purchase; onClose: ()
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td>Total pagado</td>
+              <td>{purchase.initial_payment > 0 ? "Incluye el abono inicial" : ""}</td>
+              <td className="num">{money(purchase.paid)}</td>
+              <td />
+            </tr>
+          </tfoot>
         </table>
       )}
       {!purchase.voided_at && (
