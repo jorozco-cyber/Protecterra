@@ -127,8 +127,11 @@ export async function saveSetting(key: string, value: unknown): Promise<void> {
   if (error) throw new Error(message(error));
 }
 
-export async function loadPortal(): Promise<Portal> {
-  return call<Portal>("pt_seller_portal", {});
+/** Portal del vendedor. Con `previewSeller`, el administrador ve el portal tal como lo vería ese vendedor. */
+export async function loadPortal(previewSeller?: string): Promise<Portal> {
+  return previewSeller
+    ? call<Portal>("pt_seller_portal_preview", { p_seller: previewSeller })
+    : call<Portal>("pt_seller_portal", {});
 }
 
 const FILE_BUCKET = "protecterra";
