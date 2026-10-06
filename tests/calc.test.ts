@@ -1,7 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { fifoPreview, agingBucket, agingByCustomer, monthly, cashTotal, NIO_BILLS } from "../lib/calc";
-import { money, date, addDays, monthLabel, matches } from "../lib/format";
+import {
+  fifoPreview,
+  agingBucket,
+  agingByCustomer,
+  monthly,
+  cashTotal,
+  NIO_BILLS,
+  commissionStage,
+  commissionTotals,
+  recoveredOn,
+} from "../lib/calc";
+import { money, date, addDays, monthLabel, monthName, matches } from "../lib/format";
 import type { Lot } from "../lib/types";
 
 const lot = (id: string, n: number, date: string | null, avail: number, cost: number, product = "p1"): Lot => ({
@@ -119,4 +129,53 @@ test("plurales", async () => {
   const { plural } = await import("../lib/format");
   assert.equal(plural(1, "factura", "facturas"), "1 factura");
   assert.equal(plural(3, "factura", "facturas"), "3 facturas");
+});
+
+test("La comisión se gana al recuperar la factura y se paga el mes siguiente", () => {
+  const sale = (balance: number, status: "pendiente" | "pagado" = "pendiente") => ({
+    sale_date: "2026-08-20",
+    balance,
+    commission: 100,
+    commission_status: status,
+  });
+  const sept = [{ paid_on: "2026-09-03" }, { paid_on: "2026-09-28" }];
+  const oct = [{ paid_on: "2026-09-28" }, { paid_on: "2026-10-02" }];
+  assert.equal(recoveredOn(sale(0), sept), "2026-09-28");
+  assert.equal(recoveredOn(sale(50), sept), null);
+  assert.equal(recoveredOn(sale(0), []), "2026-08-20");
+  // Recuperada en septiembre: en octubre ya está lista para pago.
+  assert.equal(commissionStage(sale(0), sept, "2026-10-05"), "lista");
+  // Recuperada en octubre: se paga en noviembre.
+  assert.equal(commissionStage(sale(0), oct, "2026-10-05"), "proximo_mes");
+  assert.equal(commissionStage(sale(0), oct, "2026-11-01"), "lista");
+  // Con saldo, aunque tenga abonos, todavía no se gana.
+  assert.equal(commissionStage(sale(50), sept, "2026-10-05"), "por_recuperar");
+  assert.equal(commissionStage(sale(0, "pagado"), sept, "2026-10-05"), "pagada");
+  // Cambio de año: recuperada en diciembre, lista en enero.
+  assert.equal(commissionStage(sale(0), [{ paid_on: "2026-12-30" }], "2027-01-02"), "lista");
+
+  const rows = [
+    { ...sale(0), p: sept },
+    { ...sale(0), p: oct },
+    { ...sale(50), p: sept },
+    { ...sale(0, "pagado"), p: sept },
+    { ...sale(0), commission: 0, p: sept },
+  ];
+  const t = commissionTotals(rows, (r) => r.p, "2026-10-05");
+  assert.deepEqual(
+    [t.lista, t.proximo_mes, t.por_recuperar, t.pagada],
+    [
+      { amount: 100, count: 1 },
+      { amount: 100, count: 1 },
+      { amount: 100, count: 1 },
+      { amount: 100, count: 1 },
+    ],
+  );
+});
+
+test("Nombre del mes con corrimiento", () => {
+  assert.equal(monthName("2026-10-05"), "octubre");
+  assert.equal(monthName("2026-10-05", -1), "septiembre");
+  assert.equal(monthName("2026-12-05", 1), "enero");
+  assert.equal(monthName("2026-01-05", -1), "diciembre");
 });
