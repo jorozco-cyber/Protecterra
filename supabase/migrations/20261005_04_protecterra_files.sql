@@ -91,16 +91,16 @@ begin
   if not exists (select 1 from pt_private.v_file_slots where t = p_table and c = p_column and id = p_id) then
     raise exception 'Archivo inválido';
   end if;
-  if p_patch ? 'path' then
+  if p_patch->>'path' is not null then
     -- Copiado: se quitan las direcciones temporales de Knack; la dirección original queda como referencia.
     execute format(
-      'update public.%I set %I = (%I - ''signed_url'' - ''signed_url_inline'' - ''thumb_url'' - ''copy_error'' - ''copy_attempts'') || $1 where id = $2',
-      p_table, p_column, p_column) using p_patch, p_id;
+      'update public.%I set %I = (%I - %L - %L - %L - %L - %L) || %L::jsonb where id = %L::uuid',
+      p_table, p_column, p_column, 'signed_url', 'signed_url_inline', 'thumb_url', 'copy_error', 'copy_attempts', p_patch, p_id);
   else
-    execute format('update public.%I set %I = %I || $1 where id = $2', p_table, p_column, p_column) using p_patch, p_id;
+    execute format('update public.%I set %I = %I || %L::jsonb where id = %L::uuid', p_table, p_column, p_column, p_patch, p_id);
   end if;
 end $$;
 
 revoke all on all functions in schema pt_private from public, anon;
-revoke all on function public.pt_files_pending(text, integer), public.pt_files_mark(text, uuid, text, jsonb) from public, anon, authenticated;
-grant execute on function public.pt_files_pending(text, integer), public.pt_files_mark(text, uuid, text, jsonb) to service_role;
+revoke all on function public.pt_files_pending(text, integer), public.pt_files_mark(text, text, uuid, text, jsonb) from public, anon, authenticated;
+grant execute on function public.pt_files_pending(text, integer), public.pt_files_mark(text, text, uuid, text, jsonb) to service_role;
