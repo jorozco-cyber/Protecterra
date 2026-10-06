@@ -2,14 +2,18 @@
 import { useState } from "react";
 import { useApp } from "./app";
 import { save } from "../data";
-import { Badge, Empty, ErrorNote, Field, FileLink, Modal, Stat, useSubmit } from "../ui";
+import { Badge, Empty, ErrorNote, Field, FileSlot, Modal, Stat, useSubmit } from "../ui";
 import { money, pct } from "@/lib/format";
 import type { OtherCommission } from "@/lib/types";
 
 const total = (c: OtherCommission) => c.agroquim_billing * c.agroquim_rate + c.other_billing * c.other_rate;
 
 export default function OtherCommissions() {
-  const { data } = useApp();
+  const { data, reload, notify } = useApp();
+  const fileSaved = async () => {
+    await reload();
+    notify("Archivo guardado");
+  };
   const [edit, setEdit] = useState<OtherCommission | "new" | null>(null);
   const rows = data.otherCommissions.filter((c) => !c.voided_at);
   const person = (id: string | null) => data.otherPeople.find((p) => p.id === id)?.name ?? "—";
@@ -54,8 +58,22 @@ export default function OtherCommissions() {
                   </button>
                   <small>
                     {c.invoice_number ? `Factura ${c.invoice_number} ` : ""}
-                    <FileLink file={c.invoice_file} label="Factura" />{" "}
-                    <FileLink file={c.payment_file} label="Comprobante" />
+                    <FileSlot
+                      file={c.invoice_file}
+                      label="Factura"
+                      table="pt_other_commissions"
+                      id={c.id}
+                      column="invoice_file"
+                      onSaved={fileSaved}
+                    />{" "}
+                    <FileSlot
+                      file={c.payment_file}
+                      label="Comprobante"
+                      table="pt_other_commissions"
+                      id={c.id}
+                      column="payment_file"
+                      onSaved={fileSaved}
+                    />
                   </small>
                 </td>
                 <td>{c.month_label ?? "—"}</td>

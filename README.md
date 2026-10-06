@@ -31,6 +31,12 @@ El permiso lo decide la base de datos, no la pantalla: aunque alguien llame a la
 
 Variables de entorno (ver `.env.example`): la dirección del proyecto de Supabase y su llave pública. No se usa ninguna llave secreta.
 
+## Archivos
+
+Facturas, recibos y comprobantes se guardan en un almacén privado propio. Solo el administrador los abre (con una dirección temporal) y los sube desde el detalle de la venta, la compra, el cobro o el pago. Reemplazar un archivo no borra el anterior.
+
+Los archivos que venían de Knack se copian con `supabase/functions/pt-copy-files`: corre sola por tandas, comprueba el tamaño de cada archivo y se detiene cuando no queda ninguno. Necesita una clave guardada en el vault (`pt_files_job_token`); al borrarla queda apagada.
+
 ## Datos de Knack
 
-El historial se copió a un respaldo de solo lectura y de ahí a las tablas nuevas. La migración se puede repetir para traer lo más reciente sin duplicar. En Knack nunca se escribe.
+El historial se copió a un respaldo de solo lectura y de ahí a las tablas nuevas. La migración se puede repetir para traer lo más reciente sin duplicar, y no pisa los archivos que ya están en el almacén propio. En Knack nunca se escribe.

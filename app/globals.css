@@ -32,7 +32,12 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--font-sans, "Figtree"), system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family:
+    var(--font-sans, "Figtree"),
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
   font-size: 15px;
   line-height: 1.45;
   font-variant-numeric: tabular-nums;
@@ -685,6 +690,32 @@ input:disabled {
   color: var(--info);
   font-size: 0.86rem;
   overflow-wrap: anywhere;
+}
+button.file-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.file-slot {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+.file-add {
+  color: var(--brand);
+  font-size: 0.82rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.file-add.busy {
+  color: inherit;
+  text-decoration: none;
+  cursor: progress;
 }
 
 /* Bars */

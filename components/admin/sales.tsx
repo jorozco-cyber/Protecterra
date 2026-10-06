@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useApp } from "./app";
 import { call, save } from "../data";
-import { Badge, Empty, ErrorNote, Field, FileLink, Modal, Search, Stat, VoidDialog, useSubmit } from "../ui";
+import { Badge, Empty, ErrorNote, Field, FileSlot, Modal, Search, Stat, VoidDialog, useSubmit } from "../ui";
 import { addDays, date, matches, money, pct, plural, qty, today } from "@/lib/format";
 import { fifoPreview } from "@/lib/calc";
 import type { Sale, SaleExpense, SalePayment } from "@/lib/types";
@@ -156,6 +156,10 @@ export function SaleDetail({ sale, onClose }: { sale: Sale; onClose: () => void 
   const expenses = data.saleExpenses.filter((e) => e.sale_id === sale.id && !e.voided_at);
   const productName = (id: string) => data.products.find((p) => p.id === id)?.name ?? "Producto";
   const lotNumber = (id: string) => data.lots.find((l) => l.id === id)?.lot_number;
+  const fileSaved = async () => {
+    await reload();
+    notify("Archivo guardado");
+  };
 
   async function removeExpense(e: SaleExpense) {
     try {
@@ -207,8 +211,24 @@ export function SaleDetail({ sale, onClose }: { sale: Sale; onClose: () => void 
       </dl>
       {sale.note && <p className="muted">{sale.note}</p>}
       <p className="files">
-        <FileLink file={sale.invoice_file} label="Factura digital" />
-        <FileLink file={sale.receipt_file} label="Recibo oficial de caja" />
+        <FileSlot
+          file={sale.invoice_file}
+          label="Factura digital"
+          table="pt_sales"
+          id={sale.id}
+          column="invoice_file"
+          locked={!!sale.voided_at}
+          onSaved={fileSaved}
+        />
+        <FileSlot
+          file={sale.receipt_file}
+          label="Recibo oficial de caja"
+          table="pt_sales"
+          id={sale.id}
+          column="receipt_file"
+          locked={!!sale.voided_at}
+          onSaved={fileSaved}
+        />
       </p>
 
       <h3>Productos</h3>
@@ -335,7 +355,15 @@ export function SaleDetail({ sale, onClose }: { sale: Sale; onClose: () => void 
                   {p.method ?? "—"}
                   <small>
                     {p.receipt_number ? `Recibo ${p.receipt_number} ` : ""}
-                    <FileLink file={p.file} label="Comprobante" />
+                    <FileSlot
+                      file={p.file}
+                      label="Comprobante"
+                      table="pt_sale_payments"
+                      id={p.id}
+                      column="file"
+                      locked={!!p.voided_at || !!sale.voided_at}
+                      onSaved={fileSaved}
+                    />
                   </small>
                 </td>
                 <td className="num">{money(p.amount)}</td>
