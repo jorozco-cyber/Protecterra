@@ -211,6 +211,9 @@ export type Data = {
   history: HistoryRow[];
   audit: AuditRow[];
   exchangeRate: number;
+  commissionReceipts: CommissionReceipt[];
+  /** Firma del administrador que sale precargada en los recibos. */
+  issuer: { name: string; signature: Signature | null } | null;
 };
 
 export type PortalSale = {
@@ -235,5 +238,59 @@ export type PortalSale = {
 export type Portal = {
   seller: { name: string; commission_rate: number };
   sales: PortalSale[];
+  receipts?: PortalReceipt[];
   customers: { id: string; name: string; phone: string | null }[];
+};
+
+/** Firma dibujada: trazos como listas x,y,x,y… sobre un lienzo de w × h. */
+export type Signature = { w: number; h: number; strokes: number[][] };
+
+export type ReceiptStatus = "enviado" | "firmado" | "pagado" | "anulado";
+
+export type ReceiptItem = {
+  sale_id: string;
+  invoice_number: number | null;
+  customer_name: string;
+  sale_date: string;
+  recovered_on: string | null;
+  total: number;
+  commission: number;
+};
+
+/** Recibo de comisiones tal como lo ve quien lo firma. */
+export type ReceiptDoc = {
+  number: number;
+  status: ReceiptStatus;
+  created_at: string;
+  token: string;
+  seller_name: string;
+  items: ReceiptItem[];
+  total_sales: number;
+  total_commission: number;
+  issuer_name: string;
+  issuer_signature: Signature | null;
+  signer_name: string | null;
+  signature: Signature | null;
+  signed_at: string | null;
+};
+
+export type CommissionReceipt = ReceiptDoc & {
+  id: string;
+  seller_id: string;
+  signed_ip: string | null;
+  payment_id: string | null;
+  email_sent_at: string | null;
+  file: FileRef;
+  voided_at: string | null;
+  voided_reason: string | null;
+};
+
+export type PortalReceipt = {
+  number: number;
+  token: string;
+  status: ReceiptStatus;
+  created_at: string;
+  total_commission: number;
+  signed_at: string | null;
+  invoices: number;
 };

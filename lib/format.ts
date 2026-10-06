@@ -31,6 +31,25 @@ export function date(v: string | null | undefined): string {
   return m ? `${m[3]}/${m[2]}/${m[1]}` : v;
 }
 
+const NI_TIME = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "America/Managua",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
+/** Fecha y hora de Nicaragua a partir de un instante: "05/10/2026 20:15". */
+export function dateTime(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const p = Object.fromEntries(NI_TIME.formatToParts(d).map((x) => [x.type, x.value]));
+  return `${p.day}/${p.month}/${p.year} ${p.hour === "24" ? "00" : p.hour}:${p.minute}`;
+}
+
 export function today(): string {
   const d = new Date();
   const p = (x: number) => String(x).padStart(2, "0");
