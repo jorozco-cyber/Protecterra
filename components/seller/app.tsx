@@ -112,6 +112,17 @@ export default function SellerApp({
         {!portal && !error && <p className="loading">Cargando…</p>}
         {portal && (
           <>
+            {(portal.receipts ?? [])
+              .filter((r) => r.status === "enviado")
+              .map((r) => (
+                <p className="note ok" role="status" key={r.token}>
+                  Tienes un recibo de comisiones por firmar: <strong>{money(r.total_commission)}</strong> por{" "}
+                  {plural(r.invoices, "factura", "facturas")}.{" "}
+                  <a className="btn small primary" href={`/firmar/${r.token}`}>
+                    Revisar y firmar
+                  </a>
+                </p>
+              ))}
             <div className="stats">
               <Stat
                 label="Por cobrar de mis clientes"
@@ -327,6 +338,44 @@ export default function SellerApp({
                 </table>
                 {commissionRows.length === 0 && <Empty>No hay comisiones en este grupo.</Empty>}
               </div>
+            )}
+            {tab === "comisiones" && (portal.receipts ?? []).length > 0 && (
+              <section className="card">
+                <h2>Mis recibos de comisión</h2>
+                <table className="table">
+                  <tbody>
+                    {(portal.receipts ?? []).map((r) => (
+                      <tr key={r.token}>
+                        <td>
+                          N.º {String(r.number).padStart(4, "0")}
+                          <small>{plural(r.invoices, "factura", "facturas")}</small>
+                        </td>
+                        <td className="num">{money(r.total_commission)}</td>
+                        <td>
+                          {r.status === "enviado" && <Badge tone="warn">Por firmar</Badge>}
+                          {r.status === "firmado" && <Badge tone="info">Firmado · pendiente de pago</Badge>}
+                          {r.status === "pagado" && <Badge tone="ok">Pagado</Badge>}
+                        </td>
+                        <td className="num">
+                          <a className="btn link" href={`/firmar/${r.token}`}>
+                            {r.status === "enviado" ? "Firmar" : "Ver y descargar"}
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>Total</td>
+                      <td className="num">
+                        {money((portal.receipts ?? []).reduce((a, r) => a + r.total_commission, 0))}
+                      </td>
+                      <td />
+                      <td />
+                    </tr>
+                  </tfoot>
+                </table>
+              </section>
             )}
           </>
         )}

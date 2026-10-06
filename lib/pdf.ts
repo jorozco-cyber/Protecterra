@@ -96,6 +96,15 @@ export type PdfDoc = {
   paragraph(text: string, size?: number, color?: Color): void;
   stats(items: { label: string; value: string }[]): void;
   table(columns: Column[], rows: Row[]): void;
+  /** Bloques de firma lado a lado: la firma dibujada sobre una línea, con leyenda y nombre debajo. */
+  signatures(blocks: SignatureBlock[]): void;
+};
+
+export type SignatureBlock = {
+  caption: string;
+  name: string;
+  note?: string;
+  signature: { w: number; h: number; strokes: number[][] } | null;
 };
 
 /** Convierte un trazo SVG (solo M, L, C, Z con coordenadas absolutas) a operadores PDF. */
@@ -264,6 +273,38 @@ export function createPdf(
         else rule(L, doc.y, W, RULE, kind === "subtotal" ? 0.8 : 0.4);
       }
       doc.y -= 6;
+    },
+    signatures(blocks) {
+      const gap = 30;
+      const w = (W - gap * (blocks.length - 1)) / blocks.length;
+      const area = 64;
+      doc.ensure(area + 58);
+      doc.y -= area + 10;
+      const line = doc.y;
+      blocks.forEach((b, i) => {
+        const x = L + i * (w + gap);
+        const sig = b.signature;
+        if (sig && sig.strokes.length && sig.w > 0 && sig.h > 0) {
+          const s = Math.min((w - 24) / sig.w, area / sig.h);
+          const ox = x + (w - sig.w * s) / 2;
+          const top = line + 3 + sig.h * s;
+          const paths: string[] = [];
+          for (const st of sig.strokes) {
+            if (st.length < 2) continue;
+            const at = (k: number) => `${(ox + st[k] * s).toFixed(2)} ${(top - st[k + 1] * s).toFixed(2)}`;
+            let d = `${at(0)} m`;
+            if (st.length < 4) d += ` ${at(0)} l`;
+            for (let k = 2; k + 1 < st.length; k += 2) d += ` ${at(k)} l`;
+            paths.push(d);
+          }
+          if (paths.length) add(`q 0.06 0.10 0.28 RG 1.15 w 1 J 1 j ${paths.join(" ")} S Q`);
+        }
+        rule(x, line, w, INK, 0.7);
+        text(b.caption, x, line - 12, 8.5, "bold", INK);
+        text(b.name, x, line - 24, 9, "regular", INK);
+        if (b.note) wrapText(b.note, 7.2, w).forEach((ln, n) => text(ln, x, line - 35 - n * 9, 7.2, "regular", MUTED));
+      });
+      doc.y = line - 56;
     },
   };
 

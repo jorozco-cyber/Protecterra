@@ -37,6 +37,12 @@ Facturas, recibos y comprobantes se guardan en un almacén privado propio. Solo 
 
 Los archivos que venían de Knack se copian con `supabase/functions/pt-copy-files`: corre sola por tandas, comprueba el tamaño de cada archivo y se detiene cuando no queda ninguno. Necesita una clave guardada en el vault (`pt_files_job_token`); al borrarla queda apagada.
 
+## Recibos de comisión con firma
+
+En Comisiones se marcan las facturas listas para pago y se usa «Enviar para firma». Se crea un recibo con una foto fija de esas facturas y un enlace privado (`/firmar/…`). El vendedor lo abre sin iniciar sesión, revisa, firma con el dedo y queda registrado quién firmó, cuándo y desde qué dirección. El PDF firmado se guarda solo en el almacén. Después se registra el pago desde el mismo recibo.
+
+La firma del administrador se dibuja una vez en «Mi firma» y sale precargada. El correo con el enlace se envía con Resend si están las variables `RESEND_API_KEY` y `RESEND_FROM`; sin ellas, el enlace se comparte a mano.
+
 ## Datos de Knack
 
 El historial se copió a un respaldo de solo lectura y de ahí a las tablas nuevas. La migración se puede repetir para traer lo más reciente sin duplicar, y no pisa los archivos que ya están en el almacén propio. En Knack nunca se escribe.

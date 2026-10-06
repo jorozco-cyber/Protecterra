@@ -1,6 +1,6 @@
 "use client";
 import { supabaseBrowser } from "@/lib/supabase/browser";
-import type { Data, Portal } from "@/lib/types";
+import type { Data, Portal, ReceiptDoc, Signature } from "@/lib/types";
 import { num } from "@/lib/format";
 
 const FRIENDLY = "No se pudo completar la operación. Revisa tu conexión e intenta de nuevo.";
@@ -50,6 +50,7 @@ export async function loadData(): Promise<Data> {
     otherCommissions,
     cashCounts,
     history,
+    receipts,
     audit,
     settings,
   ] = await Promise.all([
@@ -69,12 +70,14 @@ export async function loadData(): Promise<Data> {
     all<Data["otherCommissions"][number]>("pt_other_commissions", "created_at", false),
     all<Data["cashCounts"][number]>("pt_cash_counts", "counted_at", false),
     all<Data["history"][number]>("pt_history"),
+    all<Data["commissionReceipts"][number]>("pt_commission_receipts", "created_at", false),
     sb.from("pt_audit_log").select("*").order("id", { ascending: false }).limit(200),
     sb.from("pt_settings").select("key,value"),
   ]);
   if (audit.error) throw new Error(message(audit.error));
   if (settings.error) throw new Error(message(settings.error));
   const rate = (settings.data as { key: string; value: unknown }[]).find((s) => s.key === "usd_exchange_rate");
+  const issuer = (settings.data as { key: string; value: unknown }[]).find((s) => s.key === "issuer_signature");
   return {
     products,
     lots,
@@ -96,6 +99,8 @@ export async function loadData(): Promise<Data> {
     history,
     audit: (audit.data ?? []) as Data["audit"],
     exchangeRate: num(rate?.value) || 36.6243,
+    commissionReceipts: receipts,
+    issuer: (issuer?.value as Data["issuer"]) ?? null,
   };
 }
 
@@ -164,4 +169,26 @@ export async function attachFile(table: string, id: string, column: string, file
     })
     .eq("id", id);
   if (error) throw new Error(message(error));
+}
+
+/** Recibo de comisiones visto desde su enlace privado (no requiere sesión). */
+export async function loadReceipt(token: string): Promise<ReceiptDoc> {
+  return call<ReceiptDoc>("pt_commission_receipt_public", { p_token: token });
+}
+
+export async function signReceipt(token: string, name: string, signature: Signature): Promise<ReceiptDoc> {
+  return call<ReceiptDoc>("pt_sign_commission_receipt", { p_token: token, p_name: name, p_signature: signature });
+}
+
+/** Pide al servidor que envíe por correo el enlace de firma. Lanza un Error con el motivo si no se pudo. */
+export async function emailReceipt(id: string): Promise<void> {
+  const r = await fetch("/api/receipts/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
+  if (!r.ok) {
+    const j = (await r.json().catch(() => ({}))) as { error?: string };
+    throw new Error(j.error || "No se pudo enviar el correo.");
+  }
 }

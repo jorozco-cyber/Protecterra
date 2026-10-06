@@ -1063,3 +1063,63 @@ button.file-link {
   background: var(--brand-soft);
   font-size: 0.86rem;
 }
+
+/* Firmas */
+.signature-pad svg {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 1;
+  background: #fff;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  touch-action: none;
+  cursor: crosshair;
+}
+.signature-pad path,
+.signature-view path {
+  fill: none;
+  stroke: #10194a;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.signature-guide {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+.signature-pad-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.signature-view {
+  display: block;
+  width: 100%;
+  max-width: 260px;
+  aspect-ratio: 3 / 1;
+}
+.sign-blocks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+.sign-block {
+  display: grid;
+  gap: 2px;
+  align-content: end;
+}
+.sign-block .signature-view {
+  border-bottom: 1px solid var(--ink);
+  min-height: 70px;
+}
+.share-link {
+  display: block;
+  padding: 10px 12px;
+  background: var(--brand-soft);
+  border-radius: 9px;
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
