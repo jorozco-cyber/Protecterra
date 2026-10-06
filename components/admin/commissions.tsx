@@ -15,12 +15,17 @@ import SellerApp, { CommissionBadge } from "../seller/app";
 type Share = { id: string; number: number; token: string; note: string };
 
 export default function Commissions() {
-  const { data, reload, notify } = useApp();
+  const { data, reload, notify, focus, clearFocus } = useApp();
   const sellers = data.sellers;
   const [sellerId, setSellerId] = useState(
     sellers.find((s) => s.portal_enabled)?.id ?? sellers.find((s) => s.active)?.id ?? "",
   );
   const [selected, setSelected] = useState<string[]>([]);
+  useEffect(() => {
+    if (!focus) return;
+    if (focus.startsWith("vendedor:")) setSellerId(focus.slice(9));
+    clearFocus();
+  }, [focus, clearFocus]);
   const [paying, setPaying] = useState(false);
   const [edit, setEdit] = useState<Seller | "new" | null>(null);
   const [preview, setPreview] = useState<string | null>(null);

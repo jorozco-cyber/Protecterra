@@ -26,6 +26,12 @@ export default function SignReceipt({ token, email, initial }: { token: string; 
     setFormError("");
     try {
       setDoc(await signReceipt(token, name.trim(), signature));
+      // Aviso al administrador; si falla, igual lo verá en su pantalla de inicio.
+      void fetch("/api/receipts/signed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      }).catch(() => undefined);
       window.scrollTo({ top: 0 });
     } catch (err) {
       setFormError((err as Error).message);
