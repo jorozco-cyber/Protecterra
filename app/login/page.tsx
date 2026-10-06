@@ -23,7 +23,11 @@ export default function Login() {
       const j = await r.json();
       if (!r.ok) throw new Error(j.error);
       if (j.message) setMessage(j.message);
-      else window.location.assign("/");
+      else {
+        // Si venía de un enlace de firma, regresa a ese documento después de entrar.
+        const next = new URLSearchParams(window.location.search).get("next") ?? "";
+        window.location.assign(/^\/firmar\/[a-f0-9]{32,80}$/.test(next) ? next : "/");
+      }
     } catch (err) {
       setError((err as Error).message || "No se pudo completar el acceso.");
     } finally {

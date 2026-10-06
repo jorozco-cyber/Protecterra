@@ -665,7 +665,11 @@ function ShareDialog({ share, seller, onClose }: { share: Share; seller: Seller 
           </p>
         )}
         <p className="muted">
-          Quien tenga este enlace puede ver el recibo y firmarlo. Compártelo solo con el vendedor.
+          Para abrirlo hay que iniciar sesión. Solo {seller?.name ?? "el vendedor"} puede firmarlo, con su cuenta del
+          portal.
+          {seller && !seller.portal_enabled
+            ? " Su portal está apagado: actívalo en Editar para que pueda entrar a firmar."
+            : ""}
         </p>
         <code className="share-link">{link}</code>
         <div className="actions">

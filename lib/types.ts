@@ -272,6 +272,8 @@ export type ReceiptDoc = {
   signer_name: string | null;
   signature: Signature | null;
   signed_at: string | null;
+  /** Solo viene al abrir el enlace: verdadero si la cuenta conectada es la del vendedor del recibo. */
+  can_sign?: boolean;
 };
 
 export type CommissionReceipt = ReceiptDoc & {

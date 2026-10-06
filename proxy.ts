@@ -11,12 +11,8 @@ export async function proxy(request: NextRequest) {
         setAll(items, headers) {
           items.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({ request });
-          items.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
-          );
-          Object.entries(headers).forEach(([k, v]) =>
-            response.headers.set(k, v),
-          );
+          items.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+          Object.entries(headers).forEach(([k, v]) => response.headers.set(k, v));
         },
       },
     },
@@ -25,4 +21,4 @@ export async function proxy(request: NextRequest) {
   response.headers.set("Cache-Control", "private, no-store");
   return response;
 }
-export const config = { matcher: ["/", "/api/:path*", "/auth/:path*"] };
+export const config = { matcher: ["/", "/api/:path*", "/auth/:path*", "/firmar/:path*"] };
