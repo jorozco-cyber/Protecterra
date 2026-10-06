@@ -171,11 +171,6 @@ export async function attachFile(table: string, id: string, column: string, file
   if (error) throw new Error(message(error));
 }
 
-/** Recibo de comisiones visto desde su enlace privado (no requiere sesión). */
-export async function loadReceipt(token: string): Promise<ReceiptDoc> {
-  return call<ReceiptDoc>("pt_commission_receipt_public", { p_token: token });
-}
-
 export async function signReceipt(token: string, name: string, signature: Signature): Promise<ReceiptDoc> {
   return call<ReceiptDoc>("pt_sign_commission_receipt", { p_token: token, p_name: name, p_signature: signature });
 }

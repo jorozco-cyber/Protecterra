@@ -9,8 +9,8 @@ begin
   end if;
   if pt_private.app_seller_id() is not distinct from p_seller then return; end if;
   if not p_sign and pt_private.app_role() = 'admin' then return; end if;
-  raise exception 'Este documento pertenece a otra cuenta. Entra con el correo del vendedor al que se le envió.'
-    using errcode = 'P0001';
+  -- A otra cuenta no se le da ninguna pista de que el documento existe.
+  raise exception 'Este documento no está disponible' using errcode = 'P0001';
 end $fn$;
 
 create or replace function public.pt_commission_receipt_public(p_token text) returns jsonb
