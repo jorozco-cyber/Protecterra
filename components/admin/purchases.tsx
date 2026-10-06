@@ -17,6 +17,7 @@ export default function Purchases() {
   useEffect(() => {
     if (!focus) return;
     if (focus === "nueva") setCreating(true);
+    else if (focus === "ver:pendientes") setFilter("pendientes");
     else setOpenId(focus);
     clearFocus();
   }, [focus, clearFocus]);
@@ -49,6 +50,9 @@ export default function Purchases() {
           label="Por pagar"
           value={money(live.reduce((a, p) => a + p.balance, 0))}
           hint={`${live.filter((p) => p.balance > 0.005).length} compras pendientes`}
+          more="Ver compras"
+          onClick={() => setFilter(filter === "pendientes" ? "todas" : "pendientes")}
+          active={filter === "pendientes"}
         />
         <Stat
           label="Total comprado"

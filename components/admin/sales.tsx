@@ -10,13 +10,15 @@ import type { Sale, SaleExpense, SalePayment } from "@/lib/types";
 export default function Sales() {
   const { data, focus, clearFocus, go } = useApp();
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<"todas" | "pendientes" | "vencidas" | "anuladas">("todas");
+  const [filter, setFilter] = useState<"todas" | "mes" | "pendientes" | "vencidas" | "anuladas">("todas");
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     if (!focus) return;
     if (focus === "nueva") setCreating(true);
+    else if (focus === "ver:mes" || focus === "ver:pendientes" || focus === "ver:vencidas")
+      setFilter(focus.slice(4) as "mes" | "pendientes" | "vencidas");
     else setOpenId(focus);
     clearFocus();
   }, [focus, clearFocus]);
@@ -26,6 +28,7 @@ export default function Sales() {
       data.sales.filter((s) => {
         if (filter === "anuladas") return !!s.voided_at;
         if (s.voided_at) return false;
+        if (filter === "mes" && !s.sale_date.startsWith(today().slice(0, 7))) return false;
         if (filter === "pendientes" && s.balance <= 0.005) return false;
         if (filter === "vencidas" && s.days_overdue <= 0) return false;
         return !query || matches(`${s.customer_name} ${s.invoice_number ?? ""} ${s.seller_name ?? ""}`, query);
@@ -51,7 +54,12 @@ export default function Sales() {
       <div className="stats">
         <Stat label="Facturas" value={String(rows.length)} />
         <Stat label="Total" value={money(rows.reduce((a, s) => a + s.total, 0))} />
-        <Stat label="Saldo pendiente" value={money(rows.reduce((a, s) => a + (s.voided_at ? 0 : s.balance), 0))} />
+        <Stat
+          label="Saldo pendiente"
+          value={money(rows.reduce((a, s) => a + (s.voided_at ? 0 : s.balance), 0))}
+          onClick={() => setFilter(filter === "pendientes" ? "todas" : "pendientes")}
+          active={filter === "pendientes"}
+        />
         <Stat label="Utilidad neta" value={money(rows.reduce((a, s) => a + (s.voided_at ? 0 : s.net_profit), 0))} />
       </div>
       <div className="toolbar">
@@ -60,6 +68,7 @@ export default function Sales() {
           {(
             [
               ["todas", "Todas"],
+              ["mes", "Este mes"],
               ["pendientes", "Por cobrar"],
               ["vencidas", "Vencidas"],
               ["anuladas", "Anuladas"],
