@@ -80,13 +80,41 @@ export function Badge({ tone = "neutral", children }: { tone?: Tone; children: R
   return <span className={"badge " + tone}>{children}</span>;
 }
 
-export function Stat({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: Tone }) {
-  return (
-    <div className={"stat" + (tone ? " " + tone : "")}>
+/** Tarjeta de resumen. Con `onClick` se vuelve un botón que lleva al detalle de ese número. */
+export function Stat({
+  label,
+  value,
+  hint,
+  tone,
+  onClick,
+  active,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  tone?: Tone;
+  onClick?: () => void;
+  active?: boolean;
+}) {
+  const body = (
+    <>
       <span className="stat-label">{label}</span>
       <strong className="stat-value">{value}</strong>
       {hint && <span className="stat-hint">{hint}</span>}
-    </div>
+    </>
+  );
+  const cls = "stat" + (tone ? " " + tone : "");
+  if (!onClick) return <div className={cls}>{body}</div>;
+  return (
+    <button
+      type="button"
+      className={cls + " clickable" + (active ? " active" : "")}
+      aria-pressed={!!active}
+      onClick={onClick}
+    >
+      {body}
+      <span className="stat-more">{active ? "Viendo estas facturas" : "Ver facturas"}</span>
+    </button>
   );
 }
 
