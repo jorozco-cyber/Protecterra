@@ -9,7 +9,14 @@ import StatementDialog from "../statement-dialog";
 
 type Tab = "atrasos" | "ventas" | "comisiones";
 
-export default function SellerApp({ email }: { email: string }) {
+export default function SellerApp({
+  email,
+  preview,
+}: {
+  email: string;
+  /** Vista previa para el administrador: muestra el portal de este vendedor y un botón para volver. */
+  preview?: { sellerId: string; onExit: () => void };
+}) {
   const [portal, setPortal] = useState<Portal | null>(null);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<Tab>("atrasos");
@@ -18,10 +25,10 @@ export default function SellerApp({ email }: { email: string }) {
   const [statement, setStatement] = useState(false);
 
   useEffect(() => {
-    loadPortal()
+    loadPortal(preview?.sellerId)
       .then(setPortal)
       .catch((e: Error) => setError(e.message));
-  }, []);
+  }, [preview?.sellerId]);
 
   const view = useMemo(() => {
     const sales = portal?.sales ?? [];
@@ -48,10 +55,15 @@ export default function SellerApp({ email }: { email: string }) {
           <img className="seller-logo" src="/logo-blanco-simple.svg" alt="ProtecTerra" width={518} height={177} />
           <h1>{portal?.seller.name ?? "Mi portal"}</h1>
         </div>
-        <button className="btn small" onClick={logout}>
-          Cerrar sesión
+        <button className="btn small" onClick={preview ? preview.onExit : logout}>
+          {preview ? "Salir de la vista previa" : "Cerrar sesión"}
         </button>
       </header>
+      {preview && (
+        <p className="preview-note" role="status">
+          Vista previa: así ve su portal este vendedor. Él no ve costos, utilidades ni datos de otros vendedores.
+        </p>
+      )}
       <main className="seller-main">
         {error && (
           <p role="alert" className="note danger">

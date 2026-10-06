@@ -5,6 +5,7 @@ import { call, save } from "../data";
 import { Badge, Empty, ErrorNote, Field, Modal, Stat, useSubmit } from "../ui";
 import { date, money, pct, plural, today } from "@/lib/format";
 import type { Seller } from "@/lib/types";
+import SellerApp from "../seller/app";
 
 export default function Commissions() {
   const { data } = useApp();
@@ -15,6 +16,7 @@ export default function Commissions() {
   const [selected, setSelected] = useState<string[]>([]);
   const [paying, setPaying] = useState(false);
   const [edit, setEdit] = useState<Seller | "new" | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const seller = sellers.find((s) => s.id === sellerId) ?? null;
   const sales = useMemo(
     () => data.sales.filter((s) => !s.voided_at && s.seller_id === sellerId),
@@ -70,6 +72,9 @@ export default function Commissions() {
                     )}
                   </td>
                   <td className="num">
+                    <button className="btn link" onClick={() => setPreview(s.id)}>
+                      Ver su portal
+                    </button>
                     <button className="btn link" onClick={() => setEdit(s)}>
                       Editar
                     </button>
@@ -206,6 +211,14 @@ export default function Commissions() {
         />
       )}
       {edit && <SellerForm seller={edit === "new" ? null : edit} onClose={() => setEdit(null)} />}
+      {preview && (
+        <div className="portal-preview">
+          <SellerApp
+            email={sellers.find((s) => s.id === preview)?.email ?? ""}
+            preview={{ sellerId: preview, onExit: () => setPreview(null) }}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -1019,3 +1019,18 @@ button.file-link {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* Vista previa del portal del vendedor (solo administrador) */
+.portal-preview {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: auto;
+  background: var(--bg);
+}
+.preview-note {
+  margin: 0;
+  padding: 8px 24px;
+  background: var(--brand-soft);
+  font-size: 0.86rem;
+}
