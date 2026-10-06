@@ -3,9 +3,10 @@ import { useMemo, useState } from "react";
 import { useApp } from "./app";
 import { call, save } from "../data";
 import { Badge, Empty, ErrorNote, Field, Modal, Stat, useSubmit } from "../ui";
-import { date, money, pct, plural, today } from "@/lib/format";
+import { date, money, monthName, pct, plural, today } from "@/lib/format";
+import { commissionStage, commissionTotals } from "@/lib/calc";
 import type { Seller } from "@/lib/types";
-import SellerApp from "../seller/app";
+import SellerApp, { CommissionBadge } from "../seller/app";
 
 export default function Commissions() {
   const { data } = useApp();
@@ -23,7 +24,21 @@ export default function Commissions() {
     [data.sales, sellerId],
   );
   const pending = sales.filter((s) => s.commission_status === "pendiente" && Math.abs(s.commission) > 0.005);
-  const ready = pending.filter((s) => s.balance <= 0.005);
+  // Cobros vigentes de cada venta, para saber en qué mes quedó recuperada la factura.
+  const paymentsBySale = useMemo(() => {
+    const map = new Map<string, { paid_on: string }[]>();
+    for (const p of data.salePayments) {
+      if (p.voided_at) continue;
+      const list = map.get(p.sale_id);
+      if (list) list.push(p);
+      else map.set(p.sale_id, [p]);
+    }
+    return map;
+  }, [data.salePayments]);
+  const paymentsOf = (s: { id: string }) => paymentsBySale.get(s.id) ?? [];
+  const stageOf = (s: (typeof sales)[number]) => commissionStage(s, paymentsOf(s), today());
+  const totals = commissionTotals(sales, paymentsOf, today());
+  const ready = pending.filter((s) => stageOf(s) === "lista");
   const payments = data.commissionPayments.filter((p) => p.seller_id === sellerId);
   const selectedTotal = pending.filter((s) => selected.includes(s.id)).reduce((a, s) => a + s.commission, 0);
   const toggle = (id: string) =>
@@ -90,27 +105,30 @@ export default function Commissions() {
         <>
           <div className="stats">
             <Stat
-              label={`Pendiente de pagar a ${seller.name}`}
-              value={money(pending.reduce((a, s) => a + s.commission, 0))}
-              hint={`${pending.length} ventas`}
-            />
-            <Stat
-              label="De ventas ya cobradas"
-              value={money(ready.reduce((a, s) => a + s.commission, 0))}
-              hint={`${ready.length} ventas listas para pagar`}
+              label={`Listo para pagar a ${seller.name}`}
+              value={money(totals.lista.amount)}
+              hint={`${plural(totals.lista.count, "factura recuperada", "facturas recuperadas")} hasta ${monthName(today(), -1)}`}
               tone="ok"
             />
             <Stat
-              label="Pagado históricamente"
-              value={money(sales.filter((s) => s.commission_status === "pagado").reduce((a, s) => a + s.commission, 0))}
+              label={`Recuperado en ${monthName(today())}`}
+              value={money(totals.proximo_mes.amount)}
+              hint={`${plural(totals.proximo_mes.count, "factura", "facturas")} · se paga a inicios de ${monthName(today(), 1)}`}
             />
+            <Stat
+              label="Por recuperar"
+              value={money(totals.por_recuperar.amount)}
+              hint={`${plural(totals.por_recuperar.count, "factura", "facturas")} aún con saldo`}
+              tone="warn"
+            />
+            <Stat label="Pagado históricamente" value={money(totals.pagada.amount)} />
           </div>
           <section className="card">
             <div className="card-head">
               <h2>Comisiones pendientes</h2>
               <div className="head-actions">
                 <button className="btn small" onClick={() => setSelected(ready.map((s) => s.id))}>
-                  Marcar las ya cobradas
+                  Marcar las listas para pagar
                 </button>
                 <button className="btn small primary" disabled={selected.length === 0} onClick={() => setPaying(true)}>
                   Pagar {selected.length ? money(selectedTotal) : ""}
@@ -129,7 +147,7 @@ export default function Commissions() {
                       <th>Cliente</th>
                       <th className="num hide-sm">Utilidad bruta</th>
                       <th className="num">Comisión</th>
-                      <th>Venta</th>
+                      <th>Estado</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -151,11 +169,7 @@ export default function Commissions() {
                         <td className="num hide-sm">{money(s.gross_profit)}</td>
                         <td className="num">{money(s.commission)}</td>
                         <td>
-                          {s.balance <= 0.005 ? (
-                            <Badge tone="ok">Cobrada</Badge>
-                          ) : (
-                            <Badge tone="warn">Por cobrar</Badge>
-                          )}
+                          <CommissionBadge stage={stageOf(s)} />
                         </td>
                       </tr>
                     ))}

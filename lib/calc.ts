@@ -143,3 +143,55 @@ export const USD_BILLS = [100, 50, 20, 10, 5];
 export function cashTotal(counts: Record<string, number>, bills: number[]): number {
   return bills.reduce((sum, b) => sum + b * (Number(counts[String(b)]) || 0), 0);
 }
+
+/**
+ * Comisiones del vendedor: se ganan cuando la factura queda recuperada (cobrada completa)
+ * y se pagan a inicios del mes siguiente al mes en que se recuperó.
+ */
+export type CommissionStage = "pagada" | "lista" | "proximo_mes" | "por_recuperar";
+
+export type CommissionSale = {
+  sale_date: string;
+  balance: number;
+  commission: number;
+  commission_status: "pendiente" | "pagado";
+};
+
+/** Fecha en que la factura quedó recuperada (su último cobro), o null si todavía tiene saldo. */
+export function recoveredOn(sale: CommissionSale, payments: { paid_on: string }[]): string | null {
+  if (sale.balance > 0.005) return null;
+  return payments.reduce((last, p) => (p.paid_on > last ? p.paid_on : last), "") || sale.sale_date;
+}
+
+export function commissionStage(
+  sale: CommissionSale,
+  payments: { paid_on: string }[],
+  todayIso: string,
+): CommissionStage {
+  if (sale.commission_status === "pagado") return "pagada";
+  const recovered = recoveredOn(sale, payments);
+  if (!recovered) return "por_recuperar";
+  return recovered.slice(0, 7) < todayIso.slice(0, 7) ? "lista" : "proximo_mes";
+}
+
+export type CommissionTotals = Record<CommissionStage, { amount: number; count: number }>;
+
+export function commissionTotals<T extends CommissionSale>(
+  sales: T[],
+  paymentsOf: (sale: T) => { paid_on: string }[],
+  todayIso: string,
+): CommissionTotals {
+  const out: CommissionTotals = {
+    pagada: { amount: 0, count: 0 },
+    lista: { amount: 0, count: 0 },
+    proximo_mes: { amount: 0, count: 0 },
+    por_recuperar: { amount: 0, count: 0 },
+  };
+  for (const s of sales) {
+    if (Math.abs(s.commission) <= 0.005) continue;
+    const t = out[commissionStage(s, paymentsOf(s), todayIso)];
+    t.amount += s.commission;
+    t.count += 1;
+  }
+  return out;
+}

@@ -52,6 +52,28 @@ export function monthLabel(ym: string): string {
   return m ? `${MONTHS[Number(m[2]) - 1]} ${m[1]}` : ym;
 }
 
+const MONTH_NAMES = [
+  "enero",
+  "febrero",
+  "marzo",
+  "abril",
+  "mayo",
+  "junio",
+  "julio",
+  "agosto",
+  "septiembre",
+  "octubre",
+  "noviembre",
+  "diciembre",
+];
+
+/** Nombre del mes de una fecha, corrido los meses que se pidan: ("2026-10-05", 1) → "noviembre" */
+export function monthName(iso: string, offset = 0): string {
+  const m = /^(\d{4})-(\d{2})/.exec(iso);
+  if (!m) return "";
+  return MONTH_NAMES[(((Number(m[2]) - 1 + offset) % 12) + 12) % 12];
+}
+
 /** "1 factura" / "3 facturas" */
 export function plural(n: number, one: string, many: string): string {
   return `${nf0.format(n)} ${n === 1 ? one : many}`;

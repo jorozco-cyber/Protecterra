@@ -3,11 +3,19 @@ import { useEffect, useMemo, useState } from "react";
 import type { Portal, PortalSale } from "@/lib/types";
 import { loadPortal } from "../data";
 import { Badge, Empty, Modal, Search, Stat, logout } from "../ui";
-import { date, matches, money, pct, plural, qty } from "@/lib/format";
-import { agingByCustomer } from "@/lib/calc";
+import { date, matches, money, monthName, pct, plural, qty, today } from "@/lib/format";
+import { agingByCustomer, commissionStage, commissionTotals, recoveredOn } from "@/lib/calc";
+import type { CommissionStage } from "@/lib/calc";
 import StatementDialog from "../statement-dialog";
 
 type Tab = "atrasos" | "ventas" | "comisiones";
+
+export function CommissionBadge({ stage }: { stage: CommissionStage }) {
+  if (stage === "pagada") return <Badge tone="ok">Pagada</Badge>;
+  if (stage === "lista") return <Badge tone="info">Lista para pago</Badge>;
+  if (stage === "proximo_mes") return <Badge>Se paga en {monthName(today(), 1)}</Badge>;
+  return <Badge tone="warn">Por recuperar</Badge>;
+}
 
 export default function SellerApp({
   email,
@@ -39,8 +47,7 @@ export default function SellerApp({
       aging: agingByCustomer(sales),
       receivable: pending.reduce((a, s) => a + s.balance, 0),
       overdue: pending.filter((s) => s.days_overdue > 0).reduce((a, s) => a + s.balance, 0),
-      commissionPending: sales.filter((s) => s.commission_status === "pendiente").reduce((a, s) => a + s.commission, 0),
-      commissionPaid: sales.filter((s) => s.commission_status === "pagado").reduce((a, s) => a + s.commission, 0),
+      commission: commissionTotals(sales, (s) => s.payments, today()),
     };
   }, [portal]);
 
@@ -81,11 +88,23 @@ export default function SellerApp({
               />
               <Stat label="Vencido" value={money(view.overdue)} tone={view.overdue > 0 ? "danger" : "ok"} />
               <Stat
-                label="Mi comisión pendiente"
-                value={money(view.commissionPending)}
-                hint={`Comisión actual ${pct(portal.seller.commission_rate)}`}
+                label="Comisión lista para pago"
+                value={money(view.commission.lista.amount)}
+                hint={`${plural(view.commission.lista.count, "factura recuperada", "facturas recuperadas")} hasta ${monthName(today(), -1)}`}
+                tone="ok"
               />
-              <Stat label="Mi comisión pagada" value={money(view.commissionPaid)} />
+              <Stat
+                label={`Recuperado en ${monthName(today())}`}
+                value={money(view.commission.proximo_mes.amount)}
+                hint={`${plural(view.commission.proximo_mes.count, "factura", "facturas")} · se paga a inicios de ${monthName(today(), 1)}`}
+              />
+              <Stat
+                label="Comisión por recuperar"
+                value={money(view.commission.por_recuperar.amount)}
+                hint={`${plural(view.commission.por_recuperar.count, "factura", "facturas")} aún con saldo · comisión actual ${pct(portal.seller.commission_rate)}`}
+                tone="warn"
+              />
+              <Stat label="Mi comisión pagada" value={money(view.commission.pagada.amount)} />
             </div>
             <div className="toolbar">
               <div className="segmented" role="group" aria-label="Vista">
@@ -229,13 +248,15 @@ export default function SellerApp({
                         </td>
                         <td>
                           {s.customer_name}
-                          <small>{s.balance <= 0.005 ? "Venta cobrada" : "Venta por cobrar"}</small>
+                          <small>
+                            {s.balance <= 0.005
+                              ? `Recuperada el ${date(recoveredOn(s, s.payments))}`
+                              : `Por cobrar: ${money(s.balance)}`}
+                          </small>
                         </td>
                         <td className="num">{money(s.commission)}</td>
                         <td>
-                          <Badge tone={s.commission_status === "pagado" ? "ok" : "warn"}>
-                            {s.commission_status === "pagado" ? "Pagada" : "Pendiente"}
-                          </Badge>
+                          <CommissionBadge stage={commissionStage(s, s.payments, today())} />
                         </td>
                       </tr>
                     ))}
