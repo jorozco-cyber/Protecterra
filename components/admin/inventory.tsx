@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useApp } from "./app";
 import { create, save } from "../data";
 import { Badge, Empty, ErrorNote, Field, Modal, Search, Stat, useSubmit } from "../ui";
@@ -7,9 +7,14 @@ import { date, matches, money, plural, qty } from "@/lib/format";
 import type { Product } from "@/lib/types";
 
 export default function Inventory() {
-  const { data } = useApp();
+  const { data, focus, clearFocus } = useApp();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"stock" | "todos" | "reordenar" | "inactivos">("stock");
+  useEffect(() => {
+    if (!focus) return;
+    if (focus === "ver:stock" || focus === "ver:reordenar") setFilter(focus.slice(4) as "stock" | "reordenar");
+    clearFocus();
+  }, [focus, clearFocus]);
   const [open, setOpen] = useState<Product | null>(null);
   const [edit, setEdit] = useState<Product | "new" | null>(null);
 
@@ -41,7 +46,20 @@ export default function Inventory() {
       <div className="stats">
         <Stat label="Valor al costo" value={money(value)} />
         <Stat label="Unidades en stock" value={qty(units)} />
-        <Stat label="Productos con stock" value={String(data.products.filter((p) => p.qty_available > 0).length)} />
+        <Stat
+          label="Productos con stock"
+          value={String(data.products.filter((p) => p.qty_available > 0).length)}
+          more="Ver productos"
+          onClick={() => setFilter("stock")}
+          active={filter === "stock"}
+        />
+        <Stat
+          label="Productos por reordenar"
+          value={String(data.products.filter((p) => p.active && p.needs_reorder && p.min_required > 0).length)}
+          more="Ver productos"
+          onClick={() => setFilter(filter === "reordenar" ? "stock" : "reordenar")}
+          active={filter === "reordenar"}
+        />
       </div>
       <div className="toolbar">
         <Search value={query} onChange={setQuery} placeholder="Buscar producto" />

@@ -16,6 +16,9 @@ export default function Receivables() {
   const [tab, setTab] = useState<"cartera" | "cobros">("cartera");
   const [customer, setCustomer] = useState<CustomerAging | null>(null);
   const [statement, setStatement] = useState(false);
+  // Tarjeta elegida: deja solo los clientes con saldo en ese tramo de atraso.
+  const [bucket, setBucket] = useState<AgingBucket | null>(null);
+  const pickBucket = (b: AgingBucket | null) => (setBucket(b === bucket ? null : b), setTab("cartera"));
   useEffect(() => {
     if (focus !== "estado") return;
     setStatement(true);
@@ -23,7 +26,9 @@ export default function Receivables() {
   }, [focus, clearFocus]);
   const sales = useMemo(() => data.sales.filter((s) => !s.voided_at), [data.sales]);
   const aging = useMemo(() => agingByCustomer(sales), [sales]);
-  const rows = aging.filter((r) => !query || matches(r.customer_name, query));
+  const rows = aging.filter(
+    (r) => (!query || matches(r.customer_name, query)) && (!bucket || r.buckets[bucket] > 0.005),
+  );
   const totals = BUCKETS.map((b) => aging.reduce((a, r) => a + r.buckets[b], 0));
   const total = aging.reduce((a, r) => a + r.balance, 0);
   const saleById = useMemo(() => new Map(sales.map((s) => [s.id, s])), [sales]);
@@ -54,13 +59,23 @@ export default function Receivables() {
         </div>
       </div>
       <div className="stats">
-        <Stat label="Por cobrar" value={money(total)} hint={`${aging.length} clientes con saldo`} />
+        <Stat
+          label="Por cobrar"
+          value={money(total)}
+          hint={`${aging.length} clientes con saldo`}
+          more="Ver todos los clientes"
+          onClick={() => pickBucket(null)}
+          active={!bucket && tab === "cartera"}
+        />
         {BUCKETS.slice(1).map((b, i) => (
           <Stat
             key={b}
             label={`Vencido ${AGING_LABELS[b].toLowerCase()}`}
             value={money(totals[i + 1])}
             tone={totals[i + 1] > 0 ? (b === "d1_30" ? "warn" : "danger") : undefined}
+            more="Ver clientes"
+            onClick={() => pickBucket(b)}
+            active={bucket === b}
           />
         ))}
       </div>

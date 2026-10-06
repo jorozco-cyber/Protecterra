@@ -54,21 +54,42 @@ export default function Home() {
           label="Ventas del mes"
           value={money(view.monthTotal)}
           hint={`${view.monthCount} facturas · utilidad neta ${money(view.monthNet)}`}
+          onClick={() => go("ventas", "ver:mes")}
         />
-        <Stat label="Por cobrar" value={money(view.receivable)} hint={`${view.pendingCount} facturas pendientes`} />
+        <Stat
+          label="Por cobrar"
+          value={money(view.receivable)}
+          hint={`${view.pendingCount} facturas pendientes`}
+          onClick={() => go("ventas", "ver:pendientes")}
+        />
         <Stat
           label="Vencido"
           value={money(view.overdueTotal)}
           hint={`${view.overdue.length} facturas atrasadas`}
           tone={view.overdue.length ? "danger" : "ok"}
+          onClick={() => go("ventas", "ver:vencidas")}
         />
-        <Stat label="Por pagar a proveedores" value={money(view.payable)} hint={`${view.payableList.length} compras`} />
-        <Stat label="Inventario al costo" value={money(view.stockValue)} hint={`${qty(view.stockUnits)} unidades`} />
+        <Stat
+          label="Por pagar a proveedores"
+          value={money(view.payable)}
+          hint={`${view.payableList.length} compras`}
+          more="Ver compras"
+          onClick={() => go("compras", "ver:pendientes")}
+        />
+        <Stat
+          label="Inventario al costo"
+          value={money(view.stockValue)}
+          hint={`${qty(view.stockUnits)} unidades`}
+          more="Ver productos"
+          onClick={() => go("inventario", "ver:stock")}
+        />
         <Stat
           label="Productos por reordenar"
           value={String(view.reorder.length)}
           hint="En o por debajo del mínimo"
           tone={view.reorder.length ? "warn" : "ok"}
+          more="Ver productos"
+          onClick={() => go("inventario", "ver:reordenar")}
         />
       </div>
 

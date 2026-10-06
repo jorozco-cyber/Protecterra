@@ -88,6 +88,7 @@ export function Stat({
   tone,
   onClick,
   active,
+  more = "Ver facturas",
 }: {
   label: string;
   value: string;
@@ -95,6 +96,8 @@ export function Stat({
   tone?: Tone;
   onClick?: () => void;
   active?: boolean;
+  /** Texto del enlace de la tarjeta cuando es un botón. */
+  more?: string;
 }) {
   const body = (
     <>
@@ -113,7 +116,7 @@ export function Stat({
       onClick={onClick}
     >
       {body}
-      <span className="stat-more">{active ? "Viendo estas facturas" : "Ver facturas"}</span>
+      <span className="stat-more">{active ? "Mostrando abajo" : more}</span>
     </button>
   );
 }

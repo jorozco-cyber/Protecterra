@@ -4,7 +4,8 @@ import { useApp } from "./app";
 import { call, save } from "../data";
 import { Badge, Empty, ErrorNote, Field, Modal, Stat, useSubmit } from "../ui";
 import { date, money, monthName, pct, plural, today } from "@/lib/format";
-import { commissionStage, commissionTotals } from "@/lib/calc";
+import { commissionStage, commissionTotals, type CommissionStage } from "@/lib/calc";
+import { SaleDetail } from "./sales";
 import type { Seller } from "@/lib/types";
 import SellerApp, { CommissionBadge } from "../seller/app";
 
@@ -18,6 +19,9 @@ export default function Commissions() {
   const [paying, setPaying] = useState(false);
   const [edit, setEdit] = useState<Seller | "new" | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  // Tarjeta elegida: la tabla de abajo muestra solo las facturas de ese grupo.
+  const [stage, setStage] = useState<CommissionStage | null>(null);
+  const [openSale, setOpenSale] = useState<string | null>(null);
   const seller = sellers.find((s) => s.id === sellerId) ?? null;
   const sales = useMemo(
     () => data.sales.filter((s) => !s.voided_at && s.seller_id === sellerId),
@@ -39,6 +43,14 @@ export default function Commissions() {
   const stageOf = (s: (typeof sales)[number]) => commissionStage(s, paymentsOf(s), today());
   const totals = commissionTotals(sales, paymentsOf, today());
   const ready = pending.filter((s) => stageOf(s) === "lista");
+  const tableRows = stage ? sales.filter((s) => Math.abs(s.commission) > 0.005 && stageOf(s) === stage) : pending;
+  const card = (st: CommissionStage) => ({ onClick: () => setStage(stage === st ? null : st), active: stage === st });
+  const STAGE_TITLE: Record<CommissionStage, string> = {
+    lista: "Comisiones listas para pagar",
+    proximo_mes: `Recuperado en ${monthName(today())} (se paga en ${monthName(today(), 1)})`,
+    por_recuperar: "Comisiones por recuperar",
+    pagada: "Comisiones ya pagadas",
+  };
   const payments = data.commissionPayments.filter((p) => p.seller_id === sellerId);
   const selectedTotal = pending.filter((s) => selected.includes(s.id)).reduce((a, s) => a + s.commission, 0);
   const toggle = (id: string) =>
@@ -71,7 +83,7 @@ export default function Commissions() {
               {sellers.map((s) => (
                 <tr key={s.id} className={s.id === sellerId ? "selected" : ""}>
                   <td>
-                    <button className="cell-btn" onClick={() => (setSellerId(s.id), setSelected([]))}>
+                    <button className="cell-btn" onClick={() => (setSellerId(s.id), setSelected([]), setStage(null))}>
                       {s.name}
                     </button>
                     <small>{s.email ?? "sin correo"}</small>
@@ -109,23 +121,36 @@ export default function Commissions() {
               value={money(totals.lista.amount)}
               hint={`${plural(totals.lista.count, "factura recuperada", "facturas recuperadas")} hasta ${monthName(today(), -1)}`}
               tone="ok"
+              {...card("lista")}
             />
             <Stat
               label={`Recuperado en ${monthName(today())}`}
               value={money(totals.proximo_mes.amount)}
               hint={`${plural(totals.proximo_mes.count, "factura", "facturas")} · se paga a inicios de ${monthName(today(), 1)}`}
+              {...card("proximo_mes")}
             />
             <Stat
               label="Por recuperar"
               value={money(totals.por_recuperar.amount)}
               hint={`${plural(totals.por_recuperar.count, "factura", "facturas")} aún con saldo`}
               tone="warn"
+              {...card("por_recuperar")}
             />
-            <Stat label="Pagado históricamente" value={money(totals.pagada.amount)} />
+            <Stat label="Pagado históricamente" value={money(totals.pagada.amount)} {...card("pagada")} />
           </div>
           <section className="card">
             <div className="card-head">
-              <h2>Comisiones pendientes</h2>
+              <h2>
+                {stage ? STAGE_TITLE[stage] : "Comisiones pendientes"}
+                {stage && (
+                  <>
+                    {" "}
+                    <button className="btn link" onClick={() => setStage(null)}>
+                      Ver todas las pendientes
+                    </button>
+                  </>
+                )}
+              </h2>
               <div className="head-actions">
                 <button className="btn small" onClick={() => setSelected(ready.map((s) => s.id))}>
                   Marcar las listas para pagar
@@ -135,8 +160,8 @@ export default function Commissions() {
                 </button>
               </div>
             </div>
-            {pending.length === 0 ? (
-              <Empty>No hay comisiones pendientes para este vendedor.</Empty>
+            {tableRows.length === 0 ? (
+              <Empty>No hay comisiones en este grupo para este vendedor.</Empty>
             ) : (
               <div className="table-wrap flat">
                 <table className="table">
@@ -151,17 +176,23 @@ export default function Commissions() {
                     </tr>
                   </thead>
                   <tbody>
-                    {pending.map((s) => (
+                    {tableRows.map((s) => (
                       <tr key={s.id}>
                         <td>
-                          <input
-                            type="checkbox"
-                            aria-label={`Elegir factura ${s.invoice_number ?? ""}`}
-                            checked={selected.includes(s.id)}
-                            onChange={() => toggle(s.id)}
-                          />
+                          {s.commission_status === "pendiente" && (
+                            <input
+                              type="checkbox"
+                              aria-label={`Elegir factura ${s.invoice_number ?? ""}`}
+                              checked={selected.includes(s.id)}
+                              onChange={() => toggle(s.id)}
+                            />
+                          )}
                         </td>
-                        <td>{s.invoice_number ?? "s/n"}</td>
+                        <td>
+                          <button className="cell-btn" onClick={() => setOpenSale(s.id)}>
+                            {s.invoice_number ?? "s/n"}
+                          </button>
+                        </td>
                         <td>
                           {s.customer_name}
                           <small>{date(s.sale_date)}</small>
@@ -178,9 +209,9 @@ export default function Commissions() {
                     <tr>
                       <td />
                       <td>Total</td>
-                      <td>{plural(pending.length, "venta", "ventas")}</td>
-                      <td className="num hide-sm">{money(pending.reduce((a, s) => a + s.gross_profit, 0))}</td>
-                      <td className="num">{money(pending.reduce((a, s) => a + s.commission, 0))}</td>
+                      <td>{plural(tableRows.length, "venta", "ventas")}</td>
+                      <td className="num hide-sm">{money(tableRows.reduce((a, s) => a + s.gross_profit, 0))}</td>
+                      <td className="num">{money(tableRows.reduce((a, s) => a + s.commission, 0))}</td>
                       <td />
                     </tr>
                   </tfoot>
@@ -223,6 +254,9 @@ export default function Commissions() {
           onClose={() => setPaying(false)}
           onDone={() => setSelected([])}
         />
+      )}
+      {openSale && data.sales.some((x) => x.id === openSale) && (
+        <SaleDetail sale={data.sales.find((x) => x.id === openSale)!} onClose={() => setOpenSale(null)} />
       )}
       {edit && <SellerForm seller={edit === "new" ? null : edit} onClose={() => setEdit(null)} />}
       {preview && (

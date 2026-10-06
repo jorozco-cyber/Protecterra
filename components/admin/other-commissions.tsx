@@ -16,6 +16,13 @@ export default function OtherCommissions() {
   };
   const [edit, setEdit] = useState<OtherCommission | "new" | null>(null);
   const rows = data.otherCommissions.filter((c) => !c.voided_at);
+  const [status, setStatus] = useState<"pendiente" | "pagado" | null>(null);
+  const shown = rows.filter((c) => !status || c.status === status);
+  const card = (st: "pendiente" | "pagado") => ({
+    more: "Ver comisiones",
+    onClick: () => setStatus(status === st ? null : st),
+    active: status === st,
+  });
   const person = (id: string | null) => data.otherPeople.find((p) => p.id === id)?.name ?? "—";
   return (
     <div className="page">
@@ -31,10 +38,12 @@ export default function OtherCommissions() {
         <Stat
           label="Pendiente"
           value={money(rows.filter((c) => c.status === "pendiente").reduce((a, c) => a + total(c), 0))}
+          {...card("pendiente")}
         />
         <Stat
           label="Pagado"
           value={money(rows.filter((c) => c.status === "pagado").reduce((a, c) => a + total(c), 0))}
+          {...card("pagado")}
         />
       </div>
       <div className="table-wrap">
@@ -50,7 +59,7 @@ export default function OtherCommissions() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((c) => (
+            {shown.map((c) => (
               <tr key={c.id} className="clickable" onClick={() => setEdit(c)}>
                 <td>
                   <button className="cell-btn" onClick={() => setEdit(c)}>
@@ -103,15 +112,15 @@ export default function OtherCommissions() {
               <td>Total</td>
               <td />
               <td className="num hide-sm">
-                {money(rows.reduce((a, c) => a + c.agroquim_billing * c.agroquim_rate, 0))}
+                {money(shown.reduce((a, c) => a + c.agroquim_billing * c.agroquim_rate, 0))}
               </td>
-              <td className="num hide-sm">{money(rows.reduce((a, c) => a + c.other_billing * c.other_rate, 0))}</td>
-              <td className="num">{money(rows.reduce((a, c) => a + total(c), 0))}</td>
+              <td className="num hide-sm">{money(shown.reduce((a, c) => a + c.other_billing * c.other_rate, 0))}</td>
+              <td className="num">{money(shown.reduce((a, c) => a + total(c), 0))}</td>
               <td />
             </tr>
           </tfoot>
         </table>
-        {rows.length === 0 && <Empty>Sin comisiones registradas.</Empty>}
+        {shown.length === 0 && <Empty>Sin comisiones registradas.</Empty>}
       </div>
       {edit && <OtherForm row={edit === "new" ? null : edit} onClose={() => setEdit(null)} />}
     </div>
