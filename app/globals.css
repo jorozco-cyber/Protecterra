@@ -291,6 +291,35 @@ textarea {
   font-size: 0.78rem;
   color: var(--muted);
 }
+button.stat {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+button.stat:hover,
+button.stat.active {
+  border-color: var(--brand);
+  border-left-color: var(--brand);
+}
+button.stat.active {
+  background: var(--brand-soft);
+}
+.stat-more {
+  font-size: 0.78rem;
+  color: var(--brand);
+  text-decoration: underline;
+  margin-top: 4px;
+}
+.filter-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 0;
+  font-size: 0.9rem;
+}
 
 /* Buttons */
 .btn {

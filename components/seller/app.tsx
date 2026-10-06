@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Portal, PortalSale } from "@/lib/types";
 import { loadPortal } from "../data";
 import { Badge, Empty, Modal, Search, Stat, logout } from "../ui";
@@ -9,6 +9,16 @@ import type { CommissionStage } from "@/lib/calc";
 import StatementDialog from "../statement-dialog";
 
 type Tab = "atrasos" | "ventas" | "comisiones";
+type Focus = "saldo" | "vencidas" | CommissionStage;
+
+const FOCUS_LABEL: Record<Focus, string> = {
+  saldo: "facturas por cobrar",
+  vencidas: "facturas vencidas",
+  lista: `comisión lista para pago`,
+  proximo_mes: "comisión de facturas recuperadas este mes",
+  por_recuperar: "comisión por recuperar (facturas con saldo)",
+  pagada: "comisión ya pagada",
+};
 
 export function CommissionBadge({ stage }: { stage: CommissionStage }) {
   if (stage === "pagada") return <Badge tone="ok">Pagada</Badge>;
@@ -31,6 +41,9 @@ export default function SellerApp({
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<PortalSale | null>(null);
   const [statement, setStatement] = useState(false);
+  // Tarjeta elegida arriba: filtra la lista de abajo a las facturas de ese número.
+  const [focus, setFocus] = useState<Focus | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadPortal(preview?.sellerId)
@@ -52,8 +65,27 @@ export default function SellerApp({
   }, [portal]);
 
   const phone = (id: string) => portal?.customers.find((c) => c.id === id)?.phone ?? null;
-  const filtered = view.sales.filter((s) => !query || matches(`${s.customer_name} ${s.invoice_number ?? ""}`, query));
-  const commissionRows = filtered.filter((s) => Math.abs(s.commission) > 0.005);
+  const searched = view.sales.filter((s) => !query || matches(`${s.customer_name} ${s.invoice_number ?? ""}`, query));
+  const filtered = searched.filter(
+    (s) =>
+      !focus ||
+      (focus === "saldo" && s.balance > 0.005) ||
+      (focus === "vencidas" && s.balance > 0.005 && s.days_overdue > 0) ||
+      !(focus === "saldo" || focus === "vencidas"),
+  );
+  const commissionRows = searched.filter(
+    (s) =>
+      Math.abs(s.commission) > 0.005 &&
+      (!focus || focus === "saldo" || focus === "vencidas" || commissionStage(s, s.payments, today()) === focus),
+  );
+  const pick = (next: Focus) => {
+    const same = focus === next;
+    setFocus(same ? null : next);
+    setTab(next === "saldo" || next === "vencidas" ? "ventas" : "comisiones");
+    setQuery("");
+    if (!same) setTimeout(() => listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+  };
+  const card = (kind: Focus) => ({ onClick: () => pick(kind), active: focus === kind });
 
   return (
     <div className="seller">
@@ -85,26 +117,35 @@ export default function SellerApp({
                 label="Por cobrar de mis clientes"
                 value={money(view.receivable)}
                 hint={`${view.pending.length} facturas`}
+                {...card("saldo")}
               />
-              <Stat label="Vencido" value={money(view.overdue)} tone={view.overdue > 0 ? "danger" : "ok"} />
+              <Stat
+                label="Vencido"
+                value={money(view.overdue)}
+                tone={view.overdue > 0 ? "danger" : "ok"}
+                {...card("vencidas")}
+              />
               <Stat
                 label="Comisión lista para pago"
                 value={money(view.commission.lista.amount)}
                 hint={`${plural(view.commission.lista.count, "factura recuperada", "facturas recuperadas")} hasta ${monthName(today(), -1)}`}
                 tone="ok"
+                {...card("lista")}
               />
               <Stat
                 label={`Recuperado en ${monthName(today())}`}
                 value={money(view.commission.proximo_mes.amount)}
                 hint={`${plural(view.commission.proximo_mes.count, "factura", "facturas")} · se paga a inicios de ${monthName(today(), 1)}`}
+                {...card("proximo_mes")}
               />
               <Stat
                 label="Comisión por recuperar"
                 value={money(view.commission.por_recuperar.amount)}
                 hint={`${plural(view.commission.por_recuperar.count, "factura", "facturas")} aún con saldo · comisión actual ${pct(portal.seller.commission_rate)}`}
                 tone="warn"
+                {...card("por_recuperar")}
               />
-              <Stat label="Mi comisión pagada" value={money(view.commission.pagada.amount)} />
+              <Stat label="Mi comisión pagada" value={money(view.commission.pagada.amount)} {...card("pagada")} />
             </div>
             <div className="toolbar">
               <div className="segmented" role="group" aria-label="Vista">
@@ -119,7 +160,7 @@ export default function SellerApp({
                     key={id}
                     className={tab === id ? "active" : ""}
                     aria-pressed={tab === id}
-                    onClick={() => setTab(id)}
+                    onClick={() => (setTab(id), setFocus(null))}
                   >
                     {label}
                   </button>
@@ -133,6 +174,18 @@ export default function SellerApp({
               {tab !== "atrasos" && <Search value={query} onChange={setQuery} placeholder="Buscar cliente o factura" />}
             </div>
 
+            <div ref={listRef} />
+            {focus && tab !== "atrasos" && (
+              <p className="filter-note" role="status">
+                <span>
+                  Mostrando: <strong>{FOCUS_LABEL[focus]}</strong> ·{" "}
+                  {plural(tab === "ventas" ? filtered.length : commissionRows.length, "factura", "facturas")}
+                </span>
+                <button className="btn link" onClick={() => setFocus(null)}>
+                  Ver todas
+                </button>
+              </p>
+            )}
             {tab === "atrasos" && (
               <div className="table-wrap">
                 <table className="table">
@@ -241,9 +294,11 @@ export default function SellerApp({
                   </thead>
                   <tbody>
                     {commissionRows.slice(0, 300).map((s) => (
-                      <tr key={s.id}>
+                      <tr key={s.id} className="clickable" onClick={() => setOpen(s)}>
                         <td>
-                          {s.invoice_number ?? "s/n"}
+                          <button className="cell-btn" onClick={() => setOpen(s)}>
+                            {s.invoice_number ?? "s/n"}
+                          </button>
                           <small>{date(s.sale_date)}</small>
                         </td>
                         <td>
@@ -270,6 +325,7 @@ export default function SellerApp({
                     </tr>
                   </tfoot>
                 </table>
+                {commissionRows.length === 0 && <Empty>No hay comisiones en este grupo.</Empty>}
               </div>
             )}
           </>
