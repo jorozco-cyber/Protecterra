@@ -35,6 +35,9 @@ export default function Home() {
     };
   }, [data]);
 
+  const signedReceipts = data.commissionReceipts.filter((r) => r.status === "firmado");
+  const waitingReceipts = data.commissionReceipts.filter((r) => r.status === "enviado");
+
   return (
     <div className="page">
       <div className="page-head">
@@ -49,6 +52,31 @@ export default function Home() {
         </div>
       </div>
 
+      {signedReceipts.length > 0 && (
+        <p className="note ok" role="status">
+          {signedReceipts.length === 1
+            ? `${signedReceipts[0].seller_name} ya firmó su recibo de comisiones`
+            : `Hay ${signedReceipts.length} recibos de comisiones ya firmados`}
+          : <strong>{money(signedReceipts.reduce((a, r) => a + r.total_commission, 0))}</strong> listos para pagar.{" "}
+          <button
+            className="btn small primary"
+            onClick={() => go("comisiones", `vendedor:${signedReceipts[0].seller_id}`)}
+          >
+            Registrar pago
+          </button>
+        </p>
+      )}
+      {waitingReceipts.length > 0 && (
+        <p className="note" role="status">
+          {waitingReceipts.length === 1
+            ? "1 recibo de comisiones espera"
+            : `${waitingReceipts.length} recibos de comisiones esperan`}{" "}
+          la firma del vendedor ({money(waitingReceipts.reduce((a, r) => a + r.total_commission, 0))}).{" "}
+          <button className="btn link" onClick={() => go("comisiones", `vendedor:${waitingReceipts[0].seller_id}`)}>
+            Ver
+          </button>
+        </p>
+      )}
       <div className="stats">
         <Stat
           label="Ventas del mes"

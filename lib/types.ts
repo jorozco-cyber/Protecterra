@@ -282,6 +282,7 @@ export type CommissionReceipt = ReceiptDoc & {
   signed_ip: string | null;
   payment_id: string | null;
   email_sent_at: string | null;
+  admin_notified_at: string | null;
   file: FileRef;
   voided_at: string | null;
   voided_reason: string | null;
