@@ -2,14 +2,14 @@
 import { useEffect, useState } from "react";
 import type { ReceiptDoc, Signature } from "@/lib/types";
 import { loadReceipt, signReceipt } from "./data";
-import { Badge, ErrorNote, Field, Stat } from "./ui";
+import { Badge, ErrorNote, Field, Stat, logout } from "./ui";
 import { SignaturePad, SignatureView } from "./signature";
 import { date, dateTime, money, plural } from "@/lib/format";
 import { receiptByCustomer, receiptFileName, receiptNumber, receiptPdf, receiptStatement } from "@/lib/receipt";
 import { downloadPdf } from "@/lib/statement";
 
 /** Página del enlace privado: el vendedor revisa su recibo de comisiones y lo firma. */
-export default function SignReceipt({ token }: { token: string }) {
+export default function SignReceipt({ token, email }: { token: string; email: string }) {
   const [doc, setDoc] = useState<ReceiptDoc | null>(null);
   const [error, setError] = useState("");
   const [name, setName] = useState("");
@@ -52,9 +52,20 @@ export default function SignReceipt({ token }: { token: string }) {
           <img className="seller-logo" src="/logo-blanco-simple.svg" alt="ProtecTerra" width={518} height={177} />
           <h1>Recibo de comisiones{doc ? ` N.º ${receiptNumber(doc.number)}` : ""}</h1>
         </div>
+        <a className="btn small" href="/">
+          Ir a mi portal
+        </a>
       </header>
       <main className="seller-main">
         <ErrorNote error={error} />
+        {error && (
+          <p className="muted">
+            Estás conectado como {email}.{" "}
+            <button className="btn link" onClick={logout}>
+              Entrar con otra cuenta
+            </button>
+          </p>
+        )}
         {!doc && !error && <p className="loading">Cargando…</p>}
         {doc && (
           <>
@@ -172,6 +183,17 @@ export default function SignReceipt({ token }: { token: string }) {
                     Descargar PDF firmado
                   </button>
                 </div>
+              ) : !doc.can_sign ? (
+                <div className="form">
+                  <p className="note" role="status">
+                    Pendiente de firma. Solo {doc.seller_name} puede firmar este recibo, entrando con su propia cuenta.
+                  </p>
+                  <div className="actions">
+                    <button className="btn" onClick={() => downloadPdf(receiptPdf(doc), receiptFileName(doc))}>
+                      Ver PDF sin firmar
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <form className="form" onSubmit={sign}>
                   <Field label="Tu nombre completo">
@@ -203,7 +225,7 @@ export default function SignReceipt({ token }: { token: string }) {
             </section>
           </>
         )}
-        <p className="muted small center">ProtecTerra · Documento privado</p>
+        <p className="muted small center">ProtecTerra · Documento privado · {email}</p>
       </main>
     </div>
   );

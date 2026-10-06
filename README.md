@@ -39,7 +39,7 @@ Los archivos que venían de Knack se copian con `supabase/functions/pt-copy-file
 
 ## Recibos de comisión con firma
 
-En Comisiones se marcan las facturas listas para pago y se usa «Enviar para firma». Se crea un recibo con una foto fija de esas facturas y un enlace privado (`/firmar/…`). El vendedor lo abre sin iniciar sesión, revisa, firma con el dedo y queda registrado quién firmó, cuándo y desde qué dirección. El PDF firmado se guarda solo en el almacén. Después se registra el pago desde el mismo recibo.
+En Comisiones se marcan las facturas listas para pago y se usa «Enviar para firma». Se crea un recibo con una foto fija de esas facturas y un enlace privado (`/firmar/…`). El enlace pide iniciar sesión: lo ve el administrador o el vendedor dueño del recibo, y solo ese vendedor puede firmarlo. Revisa, firma con el dedo y queda registrado quién firmó, cuándo y desde qué dirección. El PDF firmado se guarda solo en el almacén. Después se registra el pago desde el mismo recibo.
 
 La firma del administrador se dibuja una vez en «Mi firma» y sale precargada. El correo con el enlace se envía con Resend si están las variables `RESEND_API_KEY` y `RESEND_FROM`; sin ellas, el enlace se comparte a mano.
 

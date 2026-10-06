@@ -46,11 +46,11 @@ export async function POST(req: Request) {
         to: [seller.email],
         reply_to: access.email || undefined,
         subject: `Recibo de comisiones N.º ${n} para firmar`,
-        text: `Hola ${r.seller_name}:\n\nTu recibo de comisiones N.º ${n} por ${amount} está listo. Revísalo y fírmalo en este enlace:\n${link}\n\nProtecTerra`,
+        text: `Hola ${r.seller_name}:\n\nTu recibo de comisiones N.º ${n} por ${amount} está listo. Revísalo y fírmalo en este enlace (te pedirá entrar con tu correo y contraseña del portal):\n${link}\n\nProtecTerra`,
         html:
           `<div style="font-family:Arial,sans-serif;font-size:15px;color:#18231d;line-height:1.5">` +
           `<p>Hola ${esc(r.seller_name)}:</p>` +
-          `<p>Tu recibo de comisiones <strong>N.º ${n}</strong> por <strong>${amount}</strong> está listo. Revisa el detalle y fírmalo desde tu teléfono o computadora.</p>` +
+          `<p>Tu recibo de comisiones <strong>N.º ${n}</strong> por <strong>${amount}</strong> está listo. Revisa el detalle y fírmalo desde tu teléfono o computadora. Te pedirá entrar con tu correo y contraseña del portal.</p>` +
           `<p><a href="${link}" style="display:inline-block;background:#1f4d3a;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px">Revisar y firmar</a></p>` +
           `<p style="font-size:13px;color:#5c6b61">Si el botón no abre, copia este enlace en tu navegador:<br>${link}</p>` +
           `<p>ProtecTerra</p></div>`,
