@@ -5,6 +5,7 @@ import { call } from "../data";
 import { ProductForm } from "./inventory";
 import { Badge, Empty, ErrorNote, Field, FileSlot, Modal, Search, Stat, VoidDialog, useSubmit } from "../ui";
 import { addDays, date, matches, money, plural, qty, today } from "@/lib/format";
+import { IVA_RATE, invoicesWithoutIva, withIva } from "@/lib/calc";
 import type { Purchase, PurchasePayment } from "@/lib/types";
 
 export default function Purchases() {
@@ -396,7 +397,16 @@ function PurchaseForm({ onClose }: { onClose: () => void }) {
   const [initial, setInitial] = useState("");
   const [lots, setLots] = useState<LotDraft[]>([{ key: 1, product_id: "", qty: "", unit_cost: "" }]);
   const products = data.products.filter((p) => p.active);
-  const total = lots.reduce((a, l) => a + (Number(l.qty) || 0) * (Number(l.unit_cost) || 0), 0);
+  // Proveedores que facturan el precio unitario sin IVA: se escribe tal cual sale en la
+  // factura y la app le suma el 15% a cada producto al guardar.
+  const [addIva, setAddIva] = useState(false);
+  const finalCost = (l: LotDraft) => (addIva ? withIva(Number(l.unit_cost) || 0) : Number(l.unit_cost) || 0);
+  const subtotal = lots.reduce((a, l) => a + (Number(l.qty) || 0) * (Number(l.unit_cost) || 0), 0);
+  const total = lots.reduce((a, l) => a + (Number(l.qty) || 0) * finalCost(l), 0);
+  const pickSupplier = (id: string) => {
+    setSupplier(id);
+    setAddIva(invoicesWithoutIva(data.suppliers.find((s) => s.id === id)?.name));
+  };
   // Línea de la compra desde la que se está registrando un producto nuevo.
   const [newProductFor, setNewProductFor] = useState<number | null>(null);
   const update = (key: number, patch: Partial<LotDraft>) =>
@@ -414,7 +424,11 @@ function PurchaseForm({ onClose }: { onClose: () => void }) {
         initial_payment: kind === "credito" ? initial || "0" : null,
         lots: lots
           .filter((l) => l.product_id)
-          .map((l) => ({ product_id: l.product_id, qty: l.qty, unit_cost: l.unit_cost })),
+          .map((l) => ({
+            product_id: l.product_id,
+            qty: l.qty,
+            unit_cost: addIva ? String(finalCost(l)) : l.unit_cost,
+          })),
       },
     });
     await reload();
@@ -435,7 +449,7 @@ function PurchaseForm({ onClose }: { onClose: () => void }) {
             />
           </Field>
           <Field label="Proveedor">
-            <select value={supplier} onChange={(e) => setSupplier(e.target.value)} required>
+            <select value={supplier} onChange={(e) => pickSupplier(e.target.value)} required>
               <option value="">Selecciona…</option>
               {data.suppliers.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -481,57 +495,69 @@ function PurchaseForm({ onClose }: { onClose: () => void }) {
           )}
         </div>
         <h3>Productos comprados</h3>
+        <label className="check">
+          <input type="checkbox" checked={addIva} onChange={(e) => setAddIva(e.target.checked)} /> Los precios de la
+          factura no llevan IVA: sumar {Math.round(IVA_RATE * 100)}% a cada producto
+        </label>
         {lots.map((l) => (
-          <div className="line" key={l.key}>
-            <Field label="Producto" className="grow">
-              <select
-                value={l.product_id}
-                onChange={(e) =>
-                  e.target.value === "new" ? setNewProductFor(l.key) : update(l.key, { product_id: e.target.value })
-                }
-                required
-              >
-                <option value="">Selecciona…</option>
-                <option value="new">+ Nuevo producto</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                    {p.category ? ` · ${p.category}` : ""}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Cantidad">
-              <input
-                type="number"
-                min="0.01"
-                step="any"
-                inputMode="decimal"
-                value={l.qty}
-                onChange={(e) => update(l.key, { qty: e.target.value })}
-                required
-              />
-            </Field>
-            <Field label="Costo unitario">
-              <input
-                type="number"
-                min="0"
-                step="any"
-                inputMode="decimal"
-                value={l.unit_cost}
-                onChange={(e) => update(l.key, { unit_cost: e.target.value })}
-                required
-              />
-            </Field>
-            {lots.length > 1 && (
-              <button
-                type="button"
-                className="icon-btn"
-                aria-label="Quitar producto"
-                onClick={() => setLots(lots.filter((x) => x.key !== l.key))}
-              >
-                ×
-              </button>
+          <div className="line-block" key={l.key}>
+            <div className="line">
+              <Field label="Producto" className="grow">
+                <select
+                  value={l.product_id}
+                  onChange={(e) =>
+                    e.target.value === "new" ? setNewProductFor(l.key) : update(l.key, { product_id: e.target.value })
+                  }
+                  required
+                >
+                  <option value="">Selecciona…</option>
+                  <option value="new">+ Nuevo producto</option>
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                      {p.category ? ` · ${p.category}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Cantidad">
+                <input
+                  type="number"
+                  min="0.01"
+                  step="any"
+                  inputMode="decimal"
+                  value={l.qty}
+                  onChange={(e) => update(l.key, { qty: e.target.value })}
+                  required
+                />
+              </Field>
+              <Field label={addIva ? "Costo unitario sin IVA" : "Costo unitario"}>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  inputMode="decimal"
+                  value={l.unit_cost}
+                  onChange={(e) => update(l.key, { unit_cost: e.target.value })}
+                  required
+                />
+              </Field>
+              {lots.length > 1 && (
+                <button
+                  type="button"
+                  className="icon-btn"
+                  aria-label="Quitar producto"
+                  onClick={() => setLots(lots.filter((x) => x.key !== l.key))}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+            {addIva && Number(l.unit_cost) > 0 && (
+              <p className="line-hint">
+                Con IVA: {money(finalCost(l))} por unidad
+                {Number(l.qty) > 0 ? ` · ${money(Number(l.qty) * finalCost(l))} en total` : ""}
+              </p>
             )}
           </div>
         ))}
@@ -544,8 +570,13 @@ function PurchaseForm({ onClose }: { onClose: () => void }) {
         >
           + Agregar producto
         </button>
+        {addIva && (
+          <p className="line-hint">
+            Subtotal {money(subtotal)} · IVA {money(total - subtotal)}
+          </p>
+        )}
         <p className="total-line">
-          Total de la compra <strong>{money(total)}</strong>
+          {addIva ? "Total de la compra con IVA" : "Total de la compra"} <strong>{money(total)}</strong>
         </p>
         <ErrorNote error={error} />
         <div className="actions">

@@ -195,3 +195,19 @@ export function commissionTotals<T extends CommissionSale>(
   }
   return out;
 }
+
+/** IVA de Nicaragua. */
+export const IVA_RATE = 0.15;
+
+/**
+ * Costo unitario con el IVA ya sumado, redondeado a 4 decimales (los que guarda la base).
+ * Sirve para proveedores que facturan el precio unitario sin IVA y lo cobran aparte.
+ */
+export function withIva(cost: number, rate: number = IVA_RATE): number {
+  return Math.round(cost * (1 + rate) * 10000) / 10000;
+}
+
+/** Proveedores que facturan el precio unitario sin IVA: al elegirlos se marca la casilla sola. */
+export function invoicesWithoutIva(supplierName: string | null | undefined): boolean {
+  return /agroquim/i.test(supplierName ?? "");
+}
