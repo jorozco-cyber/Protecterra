@@ -10,6 +10,8 @@ import {
   commissionStage,
   commissionTotals,
   recoveredOn,
+  withIva,
+  invoicesWithoutIva,
 } from "../lib/calc";
 import { money, date, addDays, monthLabel, monthName, matches } from "../lib/format";
 import type { Lot } from "../lib/types";
@@ -178,4 +180,34 @@ test("Nombre del mes con corrimiento", () => {
   assert.equal(monthName("2026-10-05", -1), "septiembre");
   assert.equal(monthName("2026-12-05", 1), "enero");
   assert.equal(monthName("2026-01-05", -1), "diciembre");
+});
+
+test("IVA: suma el 15% al costo unitario sin IVA", () => {
+  assert.equal(withIva(3248), 3735.2);
+  assert.equal(withIva(2707), 3113.05);
+  assert.equal(withIva(812.1), 933.915);
+  assert.equal(withIva(939.5), 1080.425);
+  assert.equal(withIva(0), 0);
+});
+
+test("IVA: la factura 0121 de Agroquim cuadra con su total", () => {
+  const lines: [number, number][] = [
+    [5, 3248],
+    [3, 3248],
+    [3, 3248],
+    [6, 2707],
+    [8, 812.1],
+    [19, 812.1],
+    [19, 812.1],
+    [19, 939.5],
+  ];
+  const total = lines.reduce((a, [q, c]) => a + q * withIva(c), 0);
+  assert.equal(Math.round(total * 100) / 100, 123253.67);
+});
+
+test("IVA: solo Agroquim factura sin IVA", () => {
+  assert.equal(invoicesWithoutIva("AGROQUIM"), true);
+  assert.equal(invoicesWithoutIva("Agroquim S.A."), true);
+  assert.equal(invoicesWithoutIva("Fertagro"), false);
+  assert.equal(invoicesWithoutIva(null), false);
 });
