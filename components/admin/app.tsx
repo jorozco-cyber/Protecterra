@@ -1,7 +1,9 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { Fragment, createContext, useCallback, useContext, useEffect, useState } from "react";
 import type { Data } from "@/lib/types";
 import { loadData } from "../data";
+import { COMPANIES, company, setCompany, type CompanyId } from "@/lib/company";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 import { logout } from "../ui";
 import Home from "./home";
 import Inventory from "./inventory";
@@ -45,6 +47,10 @@ const NAV: { id: Section; label: string; group: string }[] = [
   { id: "registro", label: "Registro de cambios", group: "Consulta" },
 ];
 
+// Secciones que una empresa no usa.
+const HIDDEN: Record<CompanyId, Section[]> = { protecterra: [], importagro: ["otras", "historial"] };
+const COMPANY_KEY = "pt-company";
+
 type Ctx = {
   data: Data;
   reload: () => Promise<void>;
@@ -74,19 +80,40 @@ export default function AdminApp({ email }: { email: string }) {
   const [focus, setFocus] = useState<string | null>(null);
   const [menu, setMenu] = useState(false);
   const [toast, setToast] = useState("");
+  const [companyId, setCompanyId] = useState<CompanyId>("protecterra");
+  // Solo quien administra las dos empresas ve el selector.
+  const [canSwitch, setCanSwitch] = useState(false);
 
   const reload = useCallback(async () => {
+    // Si se cambia de empresa mientras carga, lo que llegue de la anterior se descarta.
+    const asked = company().id;
     try {
-      setData(await loadData());
+      const loaded = await loadData();
+      if (company().id !== asked) return;
+      setData(loaded);
       setError("");
     } catch (e) {
-      setError((e as Error).message);
+      if (company().id === asked) setError((e as Error).message);
     }
   }, []);
 
   useEffect(() => {
     setSection(sectionFromHash());
-    void reload();
+    void (async () => {
+      let stored: CompanyId = "protecterra";
+      try {
+        if (window.localStorage.getItem(COMPANY_KEY) === "importagro") stored = "importagro";
+      } catch {
+        /* Sin almacenamiento local: se abre Protecterra. */
+      }
+      const { data: me } = await supabaseBrowser().rpc("ia_me");
+      const both = (me as { role?: string } | null)?.role === "admin";
+      const start: CompanyId = both ? stored : "protecterra";
+      setCanSwitch(both);
+      setCompany(start);
+      setCompanyId(start);
+      await reload();
+    })();
     const onHash = () => setSection(sectionFromHash());
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
@@ -106,8 +133,25 @@ export default function AdminApp({ email }: { email: string }) {
     window.scrollTo({ top: 0 });
   }, []);
 
-  const groups = [...new Set(NAV.map((n) => n.group))];
-  const current = NAV.find((n) => n.id === section)!;
+  function switchCompany(id: CompanyId) {
+    if (id === companyId) return;
+    setCompany(id);
+    setCompanyId(id);
+    setData(null);
+    try {
+      window.localStorage.setItem(COMPANY_KEY, id);
+    } catch {
+      /* Sin almacenamiento local: el cambio vale solo para esta visita. */
+    }
+    go("inicio");
+    void reload();
+  }
+
+  const brand = COMPANIES[companyId];
+  const nav = NAV.filter((n) => !HIDDEN[companyId].includes(n.id));
+  const groups = [...new Set(nav.map((n) => n.group))];
+  const current = nav.find((n) => n.id === section) ?? nav[0];
+  const shown = current.id;
 
   return (
     <div className="shell">
@@ -121,25 +165,49 @@ export default function AdminApp({ email }: { email: string }) {
           ☰
         </button>
         <span className="topbar-title">{current.label}</span>
-        <img className="topbar-logo" src="/logo-blanco-simple.svg" alt="ProtecTerra" width={518} height={177} />
+        {brand.logo ? (
+          <img className="topbar-logo" src="/logo-blanco-simple.svg" alt="ProtecTerra" width={518} height={177} />
+        ) : (
+          <span className="brand-text small">{brand.name}</span>
+        )}
       </header>
       <nav className={"sidebar" + (menu ? " open" : "")} aria-label="Secciones">
         <div className="sidebar-brand">
-          <img src="/logo-blanco-simple.svg" alt="ProtecTerra" width={518} height={177} />
+          {brand.logo ? (
+            <img src="/logo-blanco-simple.svg" alt="ProtecTerra" width={518} height={177} />
+          ) : (
+            <span className="brand-text">{brand.name}</span>
+          )}
         </div>
+        {canSwitch && (
+          <div className="company-switch" role="group" aria-label="Empresa">
+            {(Object.keys(COMPANIES) as CompanyId[]).map((id) => (
+              <button
+                key={id}
+                className={"company-btn" + (id === companyId ? " active" : "")}
+                aria-pressed={id === companyId}
+                onClick={() => switchCompany(id)}
+              >
+                {COMPANIES[id].name}
+              </button>
+            ))}
+          </div>
+        )}
         {groups.map((g) => (
           <div key={g} className="nav-group">
             <p className="nav-title">{g}</p>
-            {NAV.filter((n) => n.group === g).map((n) => (
-              <button
-                key={n.id}
-                className={"nav-item" + (n.id === section ? " active" : "")}
-                aria-current={n.id === section ? "page" : undefined}
-                onClick={() => go(n.id)}
-              >
-                {n.label}
-              </button>
-            ))}
+            {nav
+              .filter((n) => n.group === g)
+              .map((n) => (
+                <button
+                  key={n.id}
+                  className={"nav-item" + (n.id === shown ? " active" : "")}
+                  aria-current={n.id === shown ? "page" : undefined}
+                  onClick={() => go(n.id)}
+                >
+                  {n.label}
+                </button>
+              ))}
           </div>
         ))}
         <div className="sidebar-foot">
@@ -162,18 +230,20 @@ export default function AdminApp({ email }: { email: string }) {
         {!data && !error && <p className="loading">Cargando datos…</p>}
         {data && (
           <AppContext.Provider value={{ data, reload, notify: setToast, go, focus, clearFocus: () => setFocus(null) }}>
-            {section === "inicio" && <Home />}
-            {section === "inventario" && <Inventory />}
-            {section === "compras" && <Purchases />}
-            {section === "ventas" && <Sales />}
-            {section === "cobros" && <Receivables />}
-            {section === "clientes" && <Customers />}
-            {section === "comisiones" && <Commissions />}
-            {section === "otras" && <OtherCommissions />}
-            {section === "contador" && <CashCounter />}
-            {section === "reportes" && <Reports />}
-            {section === "historial" && <HistoryView />}
-            {section === "registro" && <AuditLog />}
+            <Fragment key={companyId}>
+              {shown === "inicio" && <Home />}
+              {shown === "inventario" && <Inventory />}
+              {shown === "compras" && <Purchases />}
+              {shown === "ventas" && <Sales />}
+              {shown === "cobros" && <Receivables />}
+              {shown === "clientes" && <Customers />}
+              {shown === "comisiones" && <Commissions />}
+              {shown === "otras" && <OtherCommissions />}
+              {shown === "contador" && <CashCounter />}
+              {shown === "reportes" && <Reports />}
+              {shown === "historial" && <HistoryView />}
+              {shown === "registro" && <AuditLog />}
+            </Fragment>
           </AppContext.Provider>
         )}
       </main>

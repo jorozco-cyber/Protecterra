@@ -1,3 +1,5 @@
+import { company } from "./company";
+
 const nf2 = new Intl.NumberFormat("es-NI", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const nf0 = new Intl.NumberFormat("es-NI", { maximumFractionDigits: 2 });
 
@@ -10,10 +12,10 @@ export function num(v: unknown): number {
   return 0;
 }
 
-/** Córdobas con dos decimales: C$ 1,234.50 */
+/** Dinero con dos decimales en la moneda de la empresa actual: C$ 1,234.50 */
 export function money(v: unknown): string {
   const n = num(v);
-  return (n < 0 ? "-" : "") + "C$ " + nf2.format(Math.abs(n));
+  return (n < 0 ? "-" : "") + company().currency + " " + nf2.format(Math.abs(n));
 }
 
 export function qty(v: unknown): string {

@@ -1,5 +1,6 @@
 import { createPdf, type Row } from "./pdf";
 import { date, money, plural } from "./format";
+import { company } from "./company";
 
 /** Una factura tal como la necesita el estado de cuentas (sirve para el administrador y para el vendedor). */
 export type StatementSale = {
@@ -107,7 +108,7 @@ export function statementPdf(st: Statement, opts: { asOf: string; seller?: strin
     {
       title: "Estado de cuentas por cobrar",
       subtitle: `Corte al ${date(opts.asOf)}`,
-      footer: `ProtecTerra · Estado de cuentas por cobrar · Corte al ${date(opts.asOf)}`,
+      footer: `${company().name} · Estado de cuentas por cobrar · Corte al ${date(opts.asOf)}`,
     },
     (doc) => {
       doc.space(6);

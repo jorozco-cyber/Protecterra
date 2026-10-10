@@ -10,6 +10,7 @@ import { downloadPdf } from "@/lib/statement";
 import { commissionStage, commissionTotals, type CommissionStage } from "@/lib/calc";
 import { SaleDetail } from "./sales";
 import type { CommissionReceipt, Seller, Signature } from "@/lib/types";
+import { company } from "@/lib/company";
 import SellerApp, { CommissionBadge } from "../seller/app";
 
 type Share = { id: string; number: number; token: string; note: string };
@@ -124,6 +125,9 @@ export default function Commissions() {
     }
   }
 
+  // Recibos con firma y portal del vendedor: solo en las empresas que ya los tienen.
+  const portalOn = company().sellerPortal;
+
   const toggle = (id: string) =>
     setSelected(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
 
@@ -132,9 +136,11 @@ export default function Commissions() {
       <div className="page-head">
         <h1>Comisiones</h1>
         <div className="head-actions">
-          <button className="btn" onClick={() => setSigOpen(true)}>
-            Mi firma{data.issuer?.signature ? "" : " (falta)"}
-          </button>
+          {portalOn && (
+            <button className="btn" onClick={() => setSigOpen(true)}>
+              Mi firma{data.issuer?.signature ? "" : " (falta)"}
+            </button>
+          )}
           <button className="btn" onClick={() => setEdit("new")}>
             Nuevo vendedor
           </button>
@@ -173,9 +179,11 @@ export default function Commissions() {
                     )}
                   </td>
                   <td className="num">
-                    <button className="btn link" onClick={() => setPreview(s.id)}>
-                      Ver su portal
-                    </button>
+                    {portalOn && (
+                      <button className="btn link" onClick={() => setPreview(s.id)}>
+                        Ver su portal
+                      </button>
+                    )}
                     <button className="btn link" onClick={() => setEdit(s)}>
                       Editar
                     </button>
@@ -232,13 +240,15 @@ export default function Commissions() {
                 >
                   Marcar las listas para pagar
                 </button>
-                <button
-                  className="btn small"
-                  disabled={selected.length === 0 || sending}
-                  onClick={() => void sendForSignature()}
-                >
-                  {sending ? "Preparando…" : "Enviar para firma"}
-                </button>
+                {portalOn && (
+                  <button
+                    className="btn small"
+                    disabled={selected.length === 0 || sending}
+                    onClick={() => void sendForSignature()}
+                  >
+                    {sending ? "Preparando…" : "Enviar para firma"}
+                  </button>
+                )}
                 <button className="btn small primary" disabled={selected.length === 0} onClick={() => setPaying(true)}>
                   Pagar {selected.length ? money(selectedTotal) : ""}
                 </button>
@@ -304,7 +314,7 @@ export default function Commissions() {
               </div>
             )}
           </section>
-          <section className="card">
+          <section className="card" style={portalOn ? undefined : { display: "none" }}>
             <h2>Recibos de comisión</h2>
             {receipts.length === 0 ? (
               <Empty>
@@ -577,10 +587,12 @@ function SellerForm({ seller, onClose }: { seller: Seller | null; onClose: () =>
         <label className="check">
           <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} /> Vendedor activo
         </label>
-        <label className="check">
-          <input type="checkbox" checked={portal} disabled={!active} onChange={(e) => setPortal(e.target.checked)} />{" "}
-          Puede entrar a su portal (solo ve sus ventas, sus clientes y sus comisiones)
-        </label>
+        {company().sellerPortal && (
+          <label className="check">
+            <input type="checkbox" checked={portal} disabled={!active} onChange={(e) => setPortal(e.target.checked)} />{" "}
+            Puede entrar a su portal (solo ve sus ventas, sus clientes y sus comisiones)
+          </label>
+        )}
         <ErrorNote error={error} />
         <div className="actions">
           <button type="button" className="btn" onClick={onClose}>

@@ -49,6 +49,10 @@ export type Purchase = {
   payment_status: "pagado" | "pendiente";
   voided_at: string | null;
   voided_reason: string | null;
+  /** Solo en empresas que llevan el IVA aparte: porcentaje, subtotal sin IVA e IVA. `total` ya lo incluye. */
+  tax_rate?: number;
+  subtotal?: number;
+  tax?: number;
 };
 
 export type PurchasePayment = {
@@ -115,6 +119,10 @@ export type Sale = {
   voided_at: string | null;
   voided_reason: string | null;
   note: string | null;
+  /** Solo en empresas que llevan el IVA aparte: porcentaje, subtotal sin IVA e IVA. `total` ya lo incluye. */
+  tax_rate?: number;
+  subtotal?: number;
+  tax?: number;
 };
 
 export type SaleLine = {
@@ -211,6 +219,8 @@ export type Data = {
   history: HistoryRow[];
   audit: AuditRow[];
   exchangeRate: number;
+  /** IVA que se suma a ventas y compras nuevas (0 si la empresa lleva los precios con IVA incluido). */
+  taxRate: number;
   commissionReceipts: CommissionReceipt[];
   /** Firma del administrador que sale precargada en los recibos. */
   issuer: { name: string; signature: Signature | null } | null;

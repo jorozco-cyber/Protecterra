@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useApp } from "./app";
 import { call, save } from "../data";
 import { Badge, Empty, ErrorNote, Field, FileSlot, Modal, Search, Stat, VoidDialog, useSubmit } from "../ui";
-import { addDays, date, matches, money, pct, plural, qty, today } from "@/lib/format";
+import { addDays, date, matches, money, num, pct, plural, qty, today } from "@/lib/format";
 import { fifoPreview } from "@/lib/calc";
 import type { Sale, SaleExpense, SalePayment } from "@/lib/types";
 
@@ -270,12 +270,30 @@ export function SaleDetail({ sale, onClose }: { sale: Sale; onClose: () => void 
         </tbody>
         <tfoot>
           <tr>
-            <td>Total</td>
+            <td>{num(sale.tax_rate) > 0 ? "Subtotal sin IVA" : "Total"}</td>
             <td className="num">{qty(lines.reduce((a, l) => a + l.qty, 0))}</td>
             <td className="num hide-sm" />
-            <td className="num">{money(sale.total)}</td>
+            <td className="num">{money(sale.subtotal ?? sale.total)}</td>
             <td className="num hide-sm">{money(sale.cost)}</td>
           </tr>
+          {num(sale.tax_rate) > 0 && (
+            <>
+              <tr>
+                <td>IVA ({pct(sale.tax_rate)})</td>
+                <td className="num" />
+                <td className="num hide-sm" />
+                <td className="num">{money(sale.tax)}</td>
+                <td className="num hide-sm" />
+              </tr>
+              <tr>
+                <td>Total con IVA</td>
+                <td className="num" />
+                <td className="num hide-sm" />
+                <td className="num">{money(sale.total)}</td>
+                <td className="num hide-sm" />
+              </tr>
+            </>
+          )}
         </tfoot>
       </table>
 
@@ -622,6 +640,10 @@ function SaleForm({ onClose }: { onClose: () => void }) {
   const total = preview.reduce((a, p) => a + (p?.total ?? 0), 0);
   const cost = preview.reduce((a, p) => a + (p?.cost ?? 0), 0);
   const expenseTotal = expenses.reduce((a, e) => a + (Number(e.amount) || 0), 0);
+  // En empresas que llevan el IVA aparte, los precios se escriben sin IVA y el total a cobrar lo suma.
+  const taxRate = data.taxRate;
+  const tax = total * taxRate;
+  const grand = total + tax;
   const gross = total - cost - expenseTotal;
   const commission = gross * sellerRate;
   const anyMissing = preview.some((p) => p && p.missing > 0);
@@ -650,7 +672,7 @@ function SaleForm({ onClose }: { onClose: () => void }) {
         due_date: kind === "credito" ? dueDate : null,
         note,
         allow_below_cost: allowBelow,
-        paid_now: kind === "contado" && paidNow ? total.toFixed(4) : null,
+        paid_now: kind === "contado" && paidNow ? grand.toFixed(4) : null,
         method,
         lines: lines
           .filter((l) => l.product_id)
@@ -855,9 +877,21 @@ function SaleForm({ onClose }: { onClose: () => void }) {
         </Field>
 
         <dl className="facts result">
+          {taxRate > 0 && (
+            <>
+              <div>
+                <dt>Subtotal sin IVA</dt>
+                <dd>{money(total)}</dd>
+              </div>
+              <div>
+                <dt>IVA ({pct(taxRate)})</dt>
+                <dd>{money(tax)}</dd>
+              </div>
+            </>
+          )}
           <div className="strong">
-            <dt>Total de la venta</dt>
-            <dd>{money(total)}</dd>
+            <dt>{taxRate > 0 ? "Total a cobrar con IVA" : "Total de la venta"}</dt>
+            <dd>{money(grand)}</dd>
           </div>
           <div>
             <dt>Costo (FIFO) y gastos</dt>
