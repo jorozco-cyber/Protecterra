@@ -1220,3 +1220,48 @@ button.file-link {
   overflow-wrap: anywhere;
   user-select: all;
 }
+
+/* Varias empresas en la misma app: selector y nombre cuando la empresa no tiene logo. */
+.brand-text {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  padding: 6px 0 2px;
+}
+.brand-text.small {
+  font-size: 1.05rem;
+  padding: 0;
+}
+.company-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 6px 6px 14px;
+  padding: 4px;
+  border-radius: 10px;
+  background: rgb(0 0 0 / 18%);
+}
+.company-btn {
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 7px 6px;
+  opacity: 0.75;
+  cursor: pointer;
+}
+.company-btn:hover {
+  opacity: 1;
+}
+.company-btn.active {
+  background: rgb(255 255 255 / 18%);
+  font-weight: 650;
+  opacity: 1;
+}
+.company-btn:focus-visible {
+  outline: 2px solid #d9f0c9;
+  outline-offset: 1px;
+}

@@ -2,6 +2,15 @@
 
 App privada para llevar inventario por lotes (FIFO), compras, ventas, cobros, cuentas por cobrar y por pagar, y comisiones. Reemplaza la app que estaba en Knack.
 
+## Dos empresas
+
+La misma app lleva **ProtecTerra** e **Importagro**. Quien administra las dos ve un selector arriba del menú; cada empresa tiene sus propios productos, lotes, compras, ventas, cobros, clientes, vendedores, comisiones y archivos, y nada se mezcla.
+
+- Las pantallas son las mismas. En la base de datos, Importagro usa tablas y funciones propias con prefijo `ia_` (las de ProtecTerra son `pt_`) y su propio almacén de archivos. `lib/company.ts` decide cuáles se usan.
+- Importagro se lleva en dólares y con el IVA aparte: precios y costos se escriben sin IVA, y cada venta y cada compra guarda su porcentaje (configuración `tax_rate`, hoy 15 %) y lo suma al total a cobrar o pagar. La utilidad y la comisión se calculan sobre el subtotal sin IVA.
+- Importagro todavía no tiene portal del vendedor ni recibos de comisión con firma; las comisiones se pagan directo desde Comisiones.
+- Sus tablas se crearon copiando la estructura y las reglas vigentes de ProtecTerra, y su historial se cargó una sola vez desde el respaldo de Knack. Las dos migraciones quedaron en el historial de Supabase: `importagro_clone_protecterra_structure` e `importagro_iva_and_history_loader`. Un cambio de reglas en ProtecTerra no pasa solo a Importagro: hay que aplicarlo en las dos.
+
 ## Quién entra
 
 - **Administrador**: ve y opera todo. Los correos de administrador están en la configuración de la base de datos.

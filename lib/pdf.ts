@@ -1,4 +1,5 @@
 import { widths } from "./pdf-metrics";
+import { company } from "./company";
 import { LOGO_H, LOGO_ICON_RECT, LOGO_ICON_STROKES, LOGO_ICON_STROKE_WIDTH, LOGO_W, LOGO_WORD } from "./logo-paths";
 
 /**
@@ -313,7 +314,8 @@ export function createPdf(
     streams.push(ops);
     const first = streams.length === 1;
     if (first) {
-      logo(L, PAGE_H - 34, 150);
+      if (company().logo) logo(L, PAGE_H - 34, 150);
+      else text(company().name, L, PAGE_H - 62, 22, "bold", BRAND);
       const tw = textWidth(options.title, 15, "bold");
       text(options.title, R - tw, PAGE_H - 56, 15, "bold", INK);
       const sw = textWidth(options.subtitle, 9, "regular");

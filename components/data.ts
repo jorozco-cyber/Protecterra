@@ -2,6 +2,7 @@
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import type { Data, Portal, ReceiptDoc, Signature } from "@/lib/types";
 import { num } from "@/lib/format";
+import { company, table } from "@/lib/company";
 
 const FRIENDLY = "No se pudo completar la operación. Revisa tu conexión e intenta de nuevo.";
 
@@ -14,12 +15,12 @@ function message(error: { message?: string; code?: string } | null): string {
   return FRIENDLY;
 }
 
-async function all<T>(table: string, order = "id", ascending = true): Promise<T[]> {
+async function all<T>(name: string, order = "id", ascending = true): Promise<T[]> {
   const sb = supabaseBrowser();
   const out: T[] = [];
   for (let from = 0; ; from += 1000) {
     const { data, error } = await sb
-      .from(table)
+      .from(table(name))
       .select("*")
       .order(order, { ascending })
       .range(from, from + 999);
@@ -71,13 +72,14 @@ export async function loadData(): Promise<Data> {
     all<Data["cashCounts"][number]>("pt_cash_counts", "counted_at", false),
     all<Data["history"][number]>("pt_history"),
     all<Data["commissionReceipts"][number]>("pt_commission_receipts", "created_at", false),
-    sb.from("pt_audit_log").select("*").order("id", { ascending: false }).limit(200),
-    sb.from("pt_settings").select("key,value"),
+    sb.from(table("pt_audit_log")).select("*").order("id", { ascending: false }).limit(200),
+    sb.from(table("pt_settings")).select("key,value"),
   ]);
   if (audit.error) throw new Error(message(audit.error));
   if (settings.error) throw new Error(message(settings.error));
   const rate = (settings.data as { key: string; value: unknown }[]).find((s) => s.key === "usd_exchange_rate");
   const issuer = (settings.data as { key: string; value: unknown }[]).find((s) => s.key === "issuer_signature");
+  const tax = (settings.data as { key: string; value: unknown }[]).find((s) => s.key === "tax_rate");
   return {
     products,
     lots,
@@ -99,6 +101,7 @@ export async function loadData(): Promise<Data> {
     history,
     audit: (audit.data ?? []) as Data["audit"],
     exchangeRate: num(rate?.value) || 36.6243,
+    taxRate: num(tax?.value),
     commissionReceipts: receipts,
     issuer: (issuer?.value as Data["issuer"]) ?? null,
   };
@@ -106,28 +109,30 @@ export async function loadData(): Promise<Data> {
 
 /** Ejecuta una operación con reglas (venta, cobro, anulación…). Lanza un Error con mensaje en español. */
 export async function call<T = unknown>(fn: string, args: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabaseBrowser().rpc(fn, args);
+  const { data, error } = await supabaseBrowser().rpc(table(fn), args);
   if (error) throw new Error(message(error));
   return data as T;
 }
 
 /** Crea o actualiza una fila de catálogo (producto, cliente, vendedor…). */
-export async function save(table: string, values: Record<string, unknown>, id?: string): Promise<void> {
+export async function save(name: string, values: Record<string, unknown>, id?: string): Promise<void> {
   const sb = supabaseBrowser();
-  const { error } = id ? await sb.from(table).update(values).eq("id", id) : await sb.from(table).insert(values);
+  const { error } = id
+    ? await sb.from(table(name)).update(values).eq("id", id)
+    : await sb.from(table(name)).insert(values);
   if (error) throw new Error(message(error));
 }
 
 /** Crea una fila de catálogo y devuelve su id, para poder usarla de inmediato. */
-export async function create(table: string, values: Record<string, unknown>): Promise<string> {
-  const { data, error } = await supabaseBrowser().from(table).insert(values).select("id").single();
+export async function create(name: string, values: Record<string, unknown>): Promise<string> {
+  const { data, error } = await supabaseBrowser().from(table(name)).insert(values).select("id").single();
   if (error || !data) throw new Error(message(error));
   return (data as { id: string }).id;
 }
 
 export async function saveSetting(key: string, value: unknown): Promise<void> {
   const { error } = await supabaseBrowser()
-    .from("pt_settings")
+    .from(table("pt_settings"))
     .upsert({ key, value, updated_at: new Date().toISOString() });
   if (error) throw new Error(message(error));
 }
@@ -139,18 +144,17 @@ export async function loadPortal(previewSeller?: string): Promise<Portal> {
     : call<Portal>("pt_seller_portal", {});
 }
 
-const FILE_BUCKET = "protecterra";
 export const FILE_ACCEPT = "application/pdf,image/jpeg,image/png,image/webp";
 
 /** Dirección temporal (5 minutos) para abrir un archivo guardado en el almacén propio. */
 export async function fileUrl(path: string): Promise<string> {
-  const { data, error } = await supabaseBrowser().storage.from(FILE_BUCKET).createSignedUrl(path, 300);
+  const { data, error } = await supabaseBrowser().storage.from(company().bucket).createSignedUrl(path, 300);
   if (error || !data?.signedUrl) throw new Error("No se pudo abrir el archivo. Intenta de nuevo.");
   return data.signedUrl;
 }
 
 /** Sube una factura, recibo o comprobante y lo deja ligado a su registro. El archivo anterior no se borra. */
-export async function attachFile(table: string, id: string, column: string, file: File): Promise<void> {
+export async function attachFile(name: string, id: string, column: string, file: File): Promise<void> {
   if (!FILE_ACCEPT.split(",").includes(file.type)) throw new Error("Solo se aceptan PDF o fotos (JPG, PNG).");
   if (file.size > 10 * 1024 * 1024) throw new Error("El archivo pesa más de 10 MB.");
   const safe =
@@ -158,12 +162,12 @@ export async function attachFile(table: string, id: string, column: string, file
       .normalize("NFKD")
       .replace(/[^\w.\-]+/g, "_")
       .slice(-80) || "archivo";
-  const path = `${table}/${id}/${column}/${Date.now()}-${safe}`;
+  const path = `${name}/${id}/${column}/${Date.now()}-${safe}`;
   const sb = supabaseBrowser();
-  const up = await sb.storage.from(FILE_BUCKET).upload(path, file, { contentType: file.type });
+  const up = await sb.storage.from(company().bucket).upload(path, file, { contentType: file.type });
   if (up.error) throw new Error("No se pudo subir el archivo. Revisa tu conexión e intenta de nuevo.");
   const { error } = await sb
-    .from(table)
+    .from(table(name))
     .update({
       [column]: { filename: file.name, path, size: file.size, mime: file.type, uploaded_at: new Date().toISOString() },
     })

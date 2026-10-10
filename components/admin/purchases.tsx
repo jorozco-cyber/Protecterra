@@ -4,7 +4,7 @@ import { useApp } from "./app";
 import { call } from "../data";
 import { ProductForm } from "./inventory";
 import { Badge, Empty, ErrorNote, Field, FileSlot, Modal, Search, Stat, VoidDialog, useSubmit } from "../ui";
-import { addDays, date, matches, money, plural, qty, today } from "@/lib/format";
+import { addDays, date, matches, money, num, pct, plural, qty, today } from "@/lib/format";
 import { IVA_RATE, invoicesWithoutIva, withIva } from "@/lib/calc";
 import type { Purchase, PurchasePayment } from "@/lib/types";
 
@@ -221,12 +221,30 @@ function PurchaseDetail({ purchase, onClose }: { purchase: Purchase; onClose: ()
         </tbody>
         <tfoot>
           <tr>
-            <td>Total</td>
+            <td>{num(purchase.tax_rate) > 0 ? "Subtotal sin IVA" : "Total"}</td>
             <td className="num">{qty(purchase.units)}</td>
             <td className="num hide-sm" />
-            <td className="num">{money(purchase.total)}</td>
+            <td className="num">{money(purchase.subtotal ?? purchase.total)}</td>
             <td className="num hide-sm">{qty(lots.reduce((a, l) => a + l.qty_available, 0))}</td>
           </tr>
+          {num(purchase.tax_rate) > 0 && (
+            <>
+              <tr>
+                <td>IVA ({pct(purchase.tax_rate)})</td>
+                <td className="num" />
+                <td className="num hide-sm" />
+                <td className="num">{money(purchase.tax)}</td>
+                <td className="num hide-sm" />
+              </tr>
+              <tr>
+                <td>Total con IVA</td>
+                <td className="num" />
+                <td className="num hide-sm" />
+                <td className="num">{money(purchase.total)}</td>
+                <td className="num hide-sm" />
+              </tr>
+            </>
+          )}
         </tfoot>
       </table>
       <h3>Pagos</h3>
@@ -402,10 +420,12 @@ function PurchaseForm({ onClose }: { onClose: () => void }) {
   const [addIva, setAddIva] = useState(false);
   const finalCost = (l: LotDraft) => (addIva ? withIva(Number(l.unit_cost) || 0) : Number(l.unit_cost) || 0);
   const subtotal = lots.reduce((a, l) => a + (Number(l.qty) || 0) * (Number(l.unit_cost) || 0), 0);
-  const total = lots.reduce((a, l) => a + (Number(l.qty) || 0) * finalCost(l), 0);
+  // Empresas que llevan el IVA aparte: el costo se guarda sin IVA y la compra lo suma al total a pagar.
+  const taxRate = data.taxRate;
+  const total = lots.reduce((a, l) => a + (Number(l.qty) || 0) * finalCost(l), 0) * (1 + taxRate);
   const pickSupplier = (id: string) => {
     setSupplier(id);
-    setAddIva(invoicesWithoutIva(data.suppliers.find((s) => s.id === id)?.name));
+    setAddIva(taxRate > 0 ? false : invoicesWithoutIva(data.suppliers.find((s) => s.id === id)?.name));
   };
   // Línea de la compra desde la que se está registrando un producto nuevo.
   const [newProductFor, setNewProductFor] = useState<number | null>(null);
@@ -495,10 +515,16 @@ function PurchaseForm({ onClose }: { onClose: () => void }) {
           )}
         </div>
         <h3>Productos comprados</h3>
-        <label className="check">
-          <input type="checkbox" checked={addIva} onChange={(e) => setAddIva(e.target.checked)} /> Los precios de la
-          factura no llevan IVA: sumar {Math.round(IVA_RATE * 100)}% a cada producto
-        </label>
+        {taxRate > 0 ? (
+          <p className="line-hint">
+            Escribe el costo sin IVA, como sale en la factura. El IVA ({pct(taxRate)}) se suma al total a pagar.
+          </p>
+        ) : (
+          <label className="check">
+            <input type="checkbox" checked={addIva} onChange={(e) => setAddIva(e.target.checked)} /> Los precios de la
+            factura no llevan IVA: sumar {Math.round(IVA_RATE * 100)}% a cada producto
+          </label>
+        )}
         {lots.map((l) => (
           <div className="line-block" key={l.key}>
             <div className="line">
@@ -570,13 +596,13 @@ function PurchaseForm({ onClose }: { onClose: () => void }) {
         >
           + Agregar producto
         </button>
-        {addIva && (
+        {(addIva || taxRate > 0) && (
           <p className="line-hint">
             Subtotal {money(subtotal)} · IVA {money(total - subtotal)}
           </p>
         )}
         <p className="total-line">
-          {addIva ? "Total de la compra con IVA" : "Total de la compra"} <strong>{money(total)}</strong>
+          {addIva || taxRate > 0 ? "Total de la compra con IVA" : "Total de la compra"} <strong>{money(total)}</strong>
         </p>
         <ErrorNote error={error} />
         <div className="actions">
