@@ -21,7 +21,7 @@ import {
   signedInvoicePdf,
 } from "@/lib/signed-invoice";
 import { company } from "@/lib/company";
-import { date, dateTime } from "@/lib/format";
+import { dateTime } from "@/lib/format";
 import type { Customer, FileRef, InvoiceSignature, InvoiceSignatureDoc, Sale, SignatureSpot } from "@/lib/types";
 
 /** Enlace vigente (pendiente o firmado) de una factura, si lo hay. */
@@ -287,7 +287,7 @@ function ShareLink({ signature, sale }: { signature: InvoiceSignature; sale: Sal
   const message =
     `Hola ${sale.customer_name}, le enviamos la factura N.º ${invoiceLabel(signature.invoice_number)} de ` +
     `${company().name} para su firma. Ábrala aquí, revísela y firme desde su teléfono: ${link}\n` +
-    `El enlace vence el ${date(signature.expires_at.slice(0, 10))}.`;
+    `El enlace vence el ${dateTime(signature.expires_at)}.`;
   const digits = (customer?.phone ?? "").replace(/\D/g, "");
   const phone = digits.length === 8 ? "505" + digits : digits.length >= 10 ? digits : "";
   const whatsapp = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;

@@ -15,10 +15,10 @@ type PdfPage = {
   }): { promise: Promise<void> };
   cleanup(): void;
 };
-type PdfDocument = { numPages: number; getPage(n: number): Promise<PdfPage>; destroy(): Promise<void> };
+type PdfDocument = { numPages: number; getPage(n: number): Promise<PdfPage> };
 type PdfJs = {
   GlobalWorkerOptions: { workerSrc: string };
-  getDocument(src: Record<string, unknown>): { promise: Promise<PdfDocument> };
+  getDocument(src: Record<string, unknown>): { promise: Promise<PdfDocument>; destroy(): Promise<void> };
 };
 
 let loading: Promise<PdfJs> | null = null;
@@ -49,13 +49,14 @@ const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 export async function renderPages(bytes: ArrayBuffer, mime: string, pixelsPerPoint: number): Promise<PageImage[]> {
   if (IMAGE_TYPES.includes(mime)) return [await renderImage(bytes, mime, pixelsPerPoint)];
   const lib = await pdfjs();
-  const doc = await lib.getDocument({
+  const task = lib.getDocument({
     data: new Uint8Array(bytes.slice(0)),
     standardFontDataUrl: BASE + "standard_fonts/",
     wasmUrl: BASE + "wasm/",
     enableXfa: false,
-  }).promise;
+  });
   try {
+    const doc = await task.promise;
     const out: PageImage[] = [];
     for (let n = 1; n <= Math.min(doc.numPages, 20); n++) {
       const page = await doc.getPage(n);
@@ -73,7 +74,8 @@ export async function renderPages(bytes: ArrayBuffer, mime: string, pixelsPerPoi
     }
     return out;
   } finally {
-    void doc.destroy();
+    // Libera la memoria y el proceso de lectura del PDF.
+    void task.destroy();
   }
 }
 
