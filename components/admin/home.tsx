@@ -37,6 +37,10 @@ export default function Home() {
 
   const signedReceipts = data.commissionReceipts.filter((r) => r.status === "firmado");
   const waitingReceipts = data.commissionReceipts.filter((r) => r.status === "enviado");
+  const signedInvoices = data.invoiceSignatures.filter((s) => s.status === "firmado" && !s.admin_seen_at);
+  const waitingInvoices = data.invoiceSignatures.filter(
+    (s) => s.status === "enviado" && new Date(s.expires_at).getTime() > Date.now(),
+  );
 
   return (
     <div className="page">
@@ -73,6 +77,26 @@ export default function Home() {
             : `${waitingReceipts.length} recibos de comisiones esperan`}{" "}
           la firma del vendedor ({money(waitingReceipts.reduce((a, r) => a + r.total_commission, 0))}).{" "}
           <button className="btn link" onClick={() => go("comisiones", `vendedor:${waitingReceipts[0].seller_id}`)}>
+            Ver
+          </button>
+        </p>
+      )}
+      {signedInvoices.length > 0 && (
+        <p className="note ok" role="status">
+          {signedInvoices.length === 1
+            ? `${signedInvoices[0].signer_name} firmó la factura N.º ${signedInvoices[0].invoice_number ?? "s/n"} (${signedInvoices[0].customer_name}).`
+            : `${signedInvoices.length} clientes firmaron sus facturas.`}{" "}
+          <button className="btn small primary" onClick={() => go("ventas", signedInvoices[0].sale_id)}>
+            Ver factura
+          </button>
+        </p>
+      )}
+      {waitingInvoices.length > 0 && (
+        <p className="note" role="status">
+          {waitingInvoices.length === 1
+            ? `La factura N.º ${waitingInvoices[0].invoice_number ?? "s/n"} (${waitingInvoices[0].customer_name}) espera la firma del cliente.`
+            : `${waitingInvoices.length} facturas esperan la firma del cliente.`}{" "}
+          <button className="btn link" onClick={() => go("ventas", waitingInvoices[0].sale_id)}>
             Ver
           </button>
         </p>

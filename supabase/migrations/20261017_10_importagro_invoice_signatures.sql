@@ -41,7 +41,6 @@ create unique index if not exists ia_invoice_signatures_one_live
   on public.ia_invoice_signatures(sale_id) where status in ('enviado', 'firmado');
 
 alter table public.ia_invoice_signatures enable row level security;
-drop policy if exists ia_admin_all on public.ia_invoice_signatures;
 create policy ia_admin_all on public.ia_invoice_signatures for all to authenticated
   using ((select ia_private.app_role()) = 'admin') with check ((select ia_private.app_role()) = 'admin');
 revoke all on public.ia_invoice_signatures from anon, authenticated;

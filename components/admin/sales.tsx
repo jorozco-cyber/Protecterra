@@ -6,6 +6,7 @@ import { Badge, Empty, ErrorNote, Field, FileSlot, Modal, Search, Stat, VoidDial
 import { addDays, date, matches, money, num, pct, plural, qty, today } from "@/lib/format";
 import { fifoPreview } from "@/lib/calc";
 import type { Sale, SaleExpense, SalePayment } from "@/lib/types";
+import { InvoiceSignaturePanel, liveSignature } from "./invoice-signature";
 
 export default function Sales() {
   const { data, focus, clearFocus, go } = useApp();
@@ -13,6 +14,10 @@ export default function Sales() {
   const [filter, setFilter] = useState<"todas" | "mes" | "pendientes" | "vencidas" | "anuladas">("todas");
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const signedBy = (saleId: string) => {
+    const sig = liveSignature(data.invoiceSignatures, saleId);
+    return sig ? (sig.status === "firmado" ? " · Firmada por el cliente" : " · Esperando firma") : null;
+  };
 
   useEffect(() => {
     if (!focus) return;
@@ -109,6 +114,7 @@ export default function Sales() {
                   {s.customer_name}
                   <small>
                     {s.seller_name ?? "Sin vendedor"} · {s.kind === "credito" ? "Crédito" : "Contado"}
+                    {signedBy(s.id)}
                   </small>
                 </td>
                 <td className="hide-sm">{date(s.sale_date)}</td>
@@ -239,6 +245,7 @@ export function SaleDetail({ sale, onClose }: { sale: Sale; onClose: () => void 
           onSaved={fileSaved}
         />
       </p>
+      <InvoiceSignaturePanel sale={sale} />
 
       <h3>Productos</h3>
       <table className="table">

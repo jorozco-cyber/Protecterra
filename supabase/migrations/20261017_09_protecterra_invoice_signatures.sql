@@ -41,7 +41,6 @@ create unique index if not exists pt_invoice_signatures_one_live
   on public.pt_invoice_signatures(sale_id) where status in ('enviado', 'firmado');
 
 alter table public.pt_invoice_signatures enable row level security;
-drop policy if exists pt_admin_all on public.pt_invoice_signatures;
 create policy pt_admin_all on public.pt_invoice_signatures for all to authenticated
   using ((select pt_private.app_role()) = 'admin') with check ((select pt_private.app_role()) = 'admin');
 revoke all on public.pt_invoice_signatures from anon, authenticated;

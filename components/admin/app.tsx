@@ -17,6 +17,7 @@ import CashCounter from "./cash-counter";
 import Reports from "./reports";
 import HistoryView from "./history";
 import AuditLog from "./audit-log";
+import { SignedInvoiceKeeper } from "./invoice-signature";
 
 export type Section =
   | "inicio"
@@ -231,6 +232,7 @@ export default function AdminApp({ email }: { email: string }) {
         {data && (
           <AppContext.Provider value={{ data, reload, notify: setToast, go, focus, clearFocus: () => setFocus(null) }}>
             <Fragment key={companyId}>
+              <SignedInvoiceKeeper />
               {shown === "inicio" && <Home />}
               {shown === "inventario" && <Inventory />}
               {shown === "compras" && <Purchases />}
