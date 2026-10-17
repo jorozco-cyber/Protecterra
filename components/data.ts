@@ -1,6 +1,6 @@
 "use client";
 import { supabaseBrowser } from "@/lib/supabase/browser";
-import type { Data, Portal, ReceiptDoc, Signature } from "@/lib/types";
+import type { Data, InvoiceSignatureDoc, Portal, ReceiptDoc, Signature, SignatureSpot } from "@/lib/types";
 import { num } from "@/lib/format";
 import { company, table } from "@/lib/company";
 
@@ -52,6 +52,7 @@ export async function loadData(): Promise<Data> {
     cashCounts,
     history,
     receipts,
+    invoiceSignatures,
     audit,
     settings,
   ] = await Promise.all([
@@ -72,6 +73,7 @@ export async function loadData(): Promise<Data> {
     all<Data["cashCounts"][number]>("pt_cash_counts", "counted_at", false),
     all<Data["history"][number]>("pt_history"),
     all<Data["commissionReceipts"][number]>("pt_commission_receipts", "created_at", false),
+    all<Data["invoiceSignatures"][number]>("pt_invoice_signatures", "created_at", false),
     sb.from(table("pt_audit_log")).select("*").order("id", { ascending: false }).limit(200),
     sb.from(table("pt_settings")).select("key,value"),
   ]);
@@ -80,6 +82,7 @@ export async function loadData(): Promise<Data> {
   const rate = (settings.data as { key: string; value: unknown }[]).find((s) => s.key === "usd_exchange_rate");
   const issuer = (settings.data as { key: string; value: unknown }[]).find((s) => s.key === "issuer_signature");
   const tax = (settings.data as { key: string; value: unknown }[]).find((s) => s.key === "tax_rate");
+  const spot = (settings.data as { key: string; value: unknown }[]).find((s) => s.key === "invoice_signature_spot");
   return {
     products,
     lots,
@@ -104,6 +107,8 @@ export async function loadData(): Promise<Data> {
     taxRate: num(tax?.value),
     commissionReceipts: receipts,
     issuer: (issuer?.value as Data["issuer"]) ?? null,
+    invoiceSignatures,
+    signatureSpot: (spot?.value as Data["signatureSpot"]) ?? null,
   };
 }
 
@@ -185,6 +190,64 @@ export async function emailReceipt(id: string): Promise<void> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id }),
+  });
+  if (!r.ok) {
+    const j = (await r.json().catch(() => ({}))) as { error?: string };
+    throw new Error(j.error || "No se pudo enviar el correo.");
+  }
+}
+
+/** Dirección temporal de la factura para el cliente: dura un poco más que el enlace de firma (7 días). */
+export async function invoiceViewUrl(path: string): Promise<string> {
+  const { data, error } = await supabaseBrowser()
+    .storage.from(company().bucket)
+    .createSignedUrl(path, 8 * 24 * 3600);
+  if (error || !data?.signedUrl) throw new Error("No se pudo preparar la factura. Intenta de nuevo.");
+  return data.signedUrl;
+}
+
+/** Descarga un archivo del almacén propio (solo el administrador). */
+export async function fileBytes(path: string): Promise<ArrayBuffer> {
+  const r = await fetch(await fileUrl(path));
+  if (!r.ok) throw new Error("No se pudo abrir la factura. Revisa tu conexión e intenta de nuevo.");
+  return r.arrayBuffer();
+}
+
+/** Crea el enlace para que el cliente firme la factura. */
+export async function createInvoiceSignature(
+  saleId: string,
+  spot: SignatureSpot,
+  viewUrl: string,
+): Promise<{ id: string; token: string; expires_at: string }> {
+  return call("pt_create_invoice_signature", { p_sale: saleId, p_placement: spot, p_view_url: viewUrl });
+}
+
+/** Firma del cliente desde el enlace (sin cuenta). `prefix` dice de qué empresa es la factura. */
+export async function signInvoice(
+  prefix: "pt_" | "ia_",
+  token: string,
+  name: string,
+  idNumber: string,
+  signature: Signature,
+): Promise<InvoiceSignatureDoc> {
+  const { data, error } = await supabaseBrowser().rpc(prefix + "sign_invoice", {
+    p_token: token,
+    p_name: name,
+    p_id_number: idNumber,
+    p_signature: signature,
+  });
+  if (error) throw new Error(error.code === "P0001" && error.message ? error.message : FRIENDLY_PUBLIC);
+  return data as InvoiceSignatureDoc;
+}
+
+const FRIENDLY_PUBLIC = "No se pudo guardar la firma. Revise su conexión e intente de nuevo.";
+
+/** Pide al servidor que envíe por correo al cliente el enlace para firmar su factura. */
+export async function emailInvoiceSignature(id: string): Promise<void> {
+  const r = await fetch("/api/invoices/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, prefix: company().prefix }),
   });
   if (!r.ok) {
     const j = (await r.json().catch(() => ({}))) as { error?: string };

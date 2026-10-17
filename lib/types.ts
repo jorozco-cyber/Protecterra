@@ -224,6 +224,10 @@ export type Data = {
   commissionReceipts: CommissionReceipt[];
   /** Firma del administrador que sale precargada en los recibos. */
   issuer: { name: string; signature: Signature | null } | null;
+  /** Enlaces para que los clientes firmen sus facturas (el más reciente primero). */
+  invoiceSignatures: InvoiceSignature[];
+  /** Último lugar marcado para la firma del cliente en la factura. */
+  signatureSpot: SignatureSpot | null;
 };
 
 export type PortalSale = {
@@ -306,4 +310,46 @@ export type PortalReceipt = {
   total_commission: number;
   signed_at: string | null;
   invoices: number;
+};
+
+/** Lugar del campo de firma en la factura: página (desde 1) y recuadro en fracciones de la hoja, desde arriba a la izquierda. */
+export type SignatureSpot = { page: number; x: number; y: number; w: number; h: number };
+
+export type InvoiceSignatureStatus = "enviado" | "firmado" | "anulado";
+
+/** Factura enviada a firmar, tal como la ve el cliente que abre el enlace. */
+export type InvoiceSignatureDoc = {
+  company: string;
+  currency: string;
+  token: string;
+  status: InvoiceSignatureStatus;
+  invoice_number: number | null;
+  customer_name: string;
+  sale_date: string;
+  kind: string;
+  due_date: string | null;
+  total: number;
+  mime: string;
+  view_url: string;
+  placement: SignatureSpot;
+  expires_at: string;
+  signer_name: string | null;
+  signer_id: string | null;
+  signature: Signature | null;
+  signed_at: string | null;
+};
+
+/** Registro completo de un enlace de firma de factura (lo ve solo el administrador). */
+export type InvoiceSignature = Omit<InvoiceSignatureDoc, "company" | "currency" | "mime"> & {
+  id: string;
+  sale_id: string;
+  file: { path: string; mime: string; filename: string };
+  signed_ip: string | null;
+  signed_agent: string | null;
+  signed_file: FileRef;
+  admin_seen_at: string | null;
+  email_sent_at: string | null;
+  created_at: string;
+  voided_at: string | null;
+  voided_reason: string | null;
 };

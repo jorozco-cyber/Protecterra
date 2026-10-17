@@ -1265,3 +1265,142 @@ button.file-link {
   outline: 2px solid #d9f0c9;
   outline-offset: 1px;
 }
+
+/* Factura para firmar: páginas una debajo de otra con el campo de firma marcado. */
+.invoice-pages {
+  display: grid;
+  gap: 12px;
+}
+
+.invoice-page {
+  position: relative;
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.invoice-page img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.invoice-pages.picking .invoice-page {
+  cursor: crosshair;
+}
+
+.invoice-page-wait {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+.invoice-page-num {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  padding: 1px 8px;
+  border-radius: 99px;
+  background: rgb(24 35 29 / 70%);
+  color: #fff;
+  font-size: 12px;
+}
+
+.invoice-spot {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  border: 2px dashed #c47a00;
+  border-radius: 4px;
+  background: rgb(255 196 0 / 22%);
+  pointer-events: none;
+  animation: invoice-spot-pulse 1.6s ease-in-out infinite;
+}
+
+.invoice-spot.signed {
+  border-color: transparent;
+  background: transparent;
+  animation: none;
+}
+
+@keyframes invoice-spot-pulse {
+  50% {
+    background: rgb(255 196 0 / 38%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invoice-spot {
+    animation: none;
+  }
+}
+
+.invoice-spot-label {
+  margin: auto;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: #c47a00;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.invoice-spot-sign {
+  flex: 1 1 74%;
+  width: 100%;
+  min-height: 0;
+}
+
+.invoice-spot-sign path {
+  stroke: rgb(13 38 110) !important;
+}
+
+.invoice-spot-caption {
+  flex: 0 0 26%;
+  max-width: 100%;
+  overflow: hidden;
+  color: #2a2a2a;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: clamp(5px, 1.4vw, 9px);
+  line-height: 1.1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.spot-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.share-link {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.invoice-sign-status {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
