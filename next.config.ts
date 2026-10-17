@@ -14,6 +14,14 @@ const nextConfig: NextConfig = {
           { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
         ],
       },
+      {
+        // Lector de PDF (copia fija de pdf.js): se carga como módulo, así que debe servirse como JavaScript.
+        source: "/vendor/pdfjs/:file(.*\\.mjs)",
+        headers: [
+          { key: "Content-Type", value: "text/javascript; charset=utf-8" },
+          { key: "Cache-Control", value: "public, max-age=86400" },
+        ],
+      },
     ];
   },
 };
