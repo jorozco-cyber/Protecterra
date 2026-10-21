@@ -277,8 +277,90 @@
   .holiday-stars b { animation: none; opacity: 0.8; }
 }
 
+/* ——— Portada del inicio: finca de noche (imagen 2400×461) ——— */
+.holiday-finca {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  container-type: inline-size;
+  aspect-ratio: 5.21 / 1;
+  border-radius: 14px;
+  border: 1px solid #c9a55c66;
+  background: #06221a;
+  box-shadow: 0 10px 28px #05231a40;
+}
+.holiday-finca-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+.holiday-finca::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, #04201acc 0%, #04201a66 32%, transparent 55%); }
+.holiday-finca > .holiday-backdrop { z-index: 2; }
+/* La luna de la imagen está al 74% del ancho y al 26.7% del alto (5.12cqw), con radio de 3.64% del ancho. */
+.holiday-finca-fly { position: absolute; left: 0; right: 0; top: calc(5.12cqw - 6cqw); height: 12cqw; overflow: hidden; z-index: 3; pointer-events: none; }
+.holiday-finca-sleigh { position: absolute; left: 0; top: 3.3cqw; width: 17cqw; animation: holiday-finca-flight 22s linear -10s infinite; }
+.holiday-finca-sleigh img { display: block; width: 100%; height: auto; }
+.holiday-finca-fly:not(.holiday-finca-moon) img { filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 9px rgb(243 223 160 / 60%)); }
+.holiday-finca-moon { clip-path: circle(3.55cqw at 74cqw 6cqw); }
+.holiday-finca-moon img { filter: brightness(0) invert(8%) sepia(40%) saturate(1500%) hue-rotate(110deg) brightness(0.55); }
+@keyframes holiday-finca-flight {
+  0% { transform: translate(-20cqw, 1cqw); }
+  72%, 100% { transform: translate(104cqw, -1cqw); }
+}
+.holiday-finca-copy { position: relative; z-index: 4; padding: 3cqw 3.4cqw; max-width: 62%; }
+.holiday-finca-copy h2 {
+  margin: 0;
+  font-family: var(--font-holiday-script), "TeX Gyre Chorus", "URW Chancery L", cursive;
+  font-weight: 400;
+  font-size: clamp(2.6rem, 5.4cqw, 4.6rem);
+  line-height: 1.05;
+  white-space: nowrap;
+  background: linear-gradient(180deg, #fff2c9, #e7c97f 45%, #b8893a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 8px #000a);
+}
+.holiday-finca-count { display: flex; align-items: baseline; gap: 0.6rem; margin: 1.1cqw 0 0; }
+.holiday-finca-count b {
+  font-family: var(--font-holiday-italic), Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(2.2rem, 4.4cqw, 3.6rem);
+  line-height: 1;
+  background: linear-gradient(180deg, #fff3cf, #d9b062);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 6px #000a);
+}
+.holiday-finca-count span {
+  font-family: var(--font-holiday-italic), Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1rem, 1.6cqw, 1.35rem);
+  color: #ead9a6;
+  text-shadow: 0 1px 6px #000c;
+}
+@media (max-width: 640px) {
+  .holiday-finca { aspect-ratio: auto; height: 300px; --h: 300px; }
+  /* Teléfono: la imagen llena el alto y la luna queda al 64% del ancho. */
+  .holiday-finca-art { width: auto; max-width: none; height: 100%; left: calc(64% - var(--h) * 3.855); object-fit: fill; }
+  .holiday-finca::after { background: linear-gradient(180deg, transparent 38%, #04201ae6 82%); }
+  .holiday-finca-copy { position: absolute; left: 0; right: 0; bottom: 0; max-width: none; padding: 18px; }
+  .holiday-finca-copy h2 { font-size: 2.6rem; white-space: normal; }
+  .holiday-finca-count { margin-top: 6px; }
+  .holiday-finca-count b { font-size: 2.3rem; }
+  .holiday-finca-count span { font-size: 1.05rem; }
+  .holiday-finca-fly { top: calc(var(--h) * 0.267 - 45px); height: 90px; }
+  .holiday-finca-sleigh { top: 28px; width: 170px; }
+  .holiday-finca-moon { clip-path: circle(calc(var(--h) * 0.185) at 64% 45px); }
+  @keyframes holiday-finca-flight {
+    0% { transform: translate(-200px, 6px); }
+    72%, 100% { transform: translate(110cqw, -6px); }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .holiday-finca-fly { display: none; }
+}
+
 @media print {
-  .holiday-backdrop, .holiday-banner, .holiday-main-corner { display: none !important; }
+  .holiday-backdrop, .holiday-banner, .holiday-finca, .holiday-main-corner { display: none !important; }
 }
 
 /* Nieve más visible: copos blancos más grandes con brillo suave. */

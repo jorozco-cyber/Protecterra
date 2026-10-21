@@ -1,4 +1,5 @@
-import type { CSSProperties } from "react";
+"use client";
+import { useEffect, useState, type CSSProperties } from "react";
 
 /** Purely decorative, deterministic markup: no timers, network calls or business data. */
 /** Destellos dorados y estrellas fijas (posiciones deterministas). */
@@ -117,7 +118,57 @@ export function HolidayMainCorner() {
   return <img className="holiday-main-corner" src="/holiday/evergreen.svg" alt="" width="360" height="260" aria-hidden="true" />;
 }
 
+/** Hoy en Nicaragua, AAAA-MM-DD. */
+const todayNi = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Managua", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+/** Saludo según la fecha: cuenta regresiva hasta Navidad, luego Navidad y Año Nuevo. */
+export function greeting(date: string) {
+  const year = Number(date.slice(0, 4)),
+    md = date.slice(5);
+  if (md === "12-24" || md === "12-25") return { title: "¡Feliz Navidad!", days: 0 };
+  if (md >= "12-26") return { title: `¡Feliz ${year + 1}!`, days: 0 };
+  if (md <= "01-06") return { title: `¡Feliz ${year}!`, days: 0 };
+  const days = Math.round((Date.parse(`${year}-12-25T00:00:00Z`) - Date.parse(`${date}T00:00:00Z`)) / 86400000);
+  return { title: `Felices Fiestas ${year}`, days };
+}
+
+/** Portada del inicio: la finca de noche, Santa cruzando la luna y el contador. */
+function FincaBanner() {
+  const [date, setDate] = useState("");
+  useEffect(() => setDate(todayNi()), []);
+  const g = date ? greeting(date) : null;
+  return (
+    <section className="holiday-finca" aria-label="Saludo navideño">
+      <img className="holiday-finca-art" src="/holiday/finca-noche.webp" alt="" width="2400" height="461" aria-hidden="true" />
+      <HolidayBackdrop />
+      <div className="holiday-finca-fly" aria-hidden="true">
+        <div className="holiday-finca-sleigh holiday-motion">
+          <img src="/holiday/santa-sleigh.webp" alt="" width="900" height="207" />
+        </div>
+      </div>
+      {/* El mismo vuelo, oscuro y recortado a la luna: silueta al cruzarla. */}
+      <div className="holiday-finca-fly holiday-finca-moon" aria-hidden="true">
+        <div className="holiday-finca-sleigh holiday-motion">
+          <img src="/holiday/santa-sleigh.webp" alt="" width="900" height="207" />
+        </div>
+      </div>
+      {g && (
+        <div className="holiday-finca-copy">
+          <h2>{g.title}</h2>
+          {g.days > 0 && (
+            <p className="holiday-finca-count">
+              <b>{g.days}</b>
+              <span>{g.days === 1 ? "día para Navidad" : "días para Navidad"}</span>
+            </p>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function HolidayBanner({ variant = "panel" }: { variant?: "panel" | "seller" | "login" }) {
+  if (variant === "panel") return <FincaBanner />;
   return (
     <section className={`holiday-banner holiday-banner-${variant}`} aria-label="Saludo navideño">
       {variant === "panel" && <HolidayBackdrop corner stars />}
