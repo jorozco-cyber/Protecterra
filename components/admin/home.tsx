@@ -2,12 +2,14 @@
 import { useMemo } from "react";
 import { useApp } from "./app";
 import { Bars, Empty, Stat } from "../ui";
-import { date, money, monthLabel, qty, today } from "@/lib/format";
+import { date, monthLabel, qty, today } from "@/lib/format";
 import { monthly } from "@/lib/calc";
 import { HolidayBanner } from "../holiday";
+import { EyeToggle, useHideAmounts } from "../hide-amounts";
 
 export default function Home() {
   const { data, go } = useApp();
+  const { hidden, toggle, amount } = useHideAmounts();
   const view = useMemo(() => {
     const sales = data.sales.filter((s) => !s.voided_at);
     const purchases = data.purchases.filter((p) => !p.voided_at);
@@ -46,7 +48,10 @@ export default function Home() {
   return (
     <div className="page">
       <div className="page-head">
-        <h1>Inicio</h1>
+        <div className="title-row">
+          <h1>Inicio</h1>
+          <EyeToggle hidden={hidden} onToggle={toggle} />
+        </div>
         <div className="head-actions">
           <button className="btn primary" onClick={() => go("ventas", "nueva")}>
             Nueva venta
@@ -64,7 +69,7 @@ export default function Home() {
           {signedReceipts.length === 1
             ? `${signedReceipts[0].seller_name} ya firmó su recibo de comisiones`
             : `Hay ${signedReceipts.length} recibos de comisiones ya firmados`}
-          : <strong>{money(signedReceipts.reduce((a, r) => a + r.total_commission, 0))}</strong> listos para pagar.{" "}
+          : <strong>{amount(signedReceipts.reduce((a, r) => a + r.total_commission, 0))}</strong> listos para pagar.{" "}
           <button
             className="btn small primary"
             onClick={() => go("comisiones", `vendedor:${signedReceipts[0].seller_id}`)}
@@ -78,7 +83,7 @@ export default function Home() {
           {waitingReceipts.length === 1
             ? "1 recibo de comisiones espera"
             : `${waitingReceipts.length} recibos de comisiones esperan`}{" "}
-          la firma del vendedor ({money(waitingReceipts.reduce((a, r) => a + r.total_commission, 0))}).{" "}
+          la firma del vendedor ({amount(waitingReceipts.reduce((a, r) => a + r.total_commission, 0))}).{" "}
           <button className="btn link" onClick={() => go("comisiones", `vendedor:${waitingReceipts[0].seller_id}`)}>
             Ver
           </button>
@@ -107,33 +112,33 @@ export default function Home() {
       <div className="stats home-stats">
         <Stat
           label="Ventas del mes"
-          value={money(view.monthTotal)}
-          hint={`${view.monthCount} facturas · utilidad neta ${money(view.monthNet)}`}
+          value={amount(view.monthTotal)}
+          hint={`${view.monthCount} facturas · utilidad neta ${amount(view.monthNet)}`}
           onClick={() => go("ventas", "ver:mes")}
         />
         <Stat
           label="Por cobrar"
-          value={money(view.receivable)}
+          value={amount(view.receivable)}
           hint={`${view.pendingCount} facturas pendientes`}
           onClick={() => go("ventas", "ver:pendientes")}
         />
         <Stat
           label="Vencido"
-          value={money(view.overdueTotal)}
+          value={amount(view.overdueTotal)}
           hint={`${view.overdue.length} facturas atrasadas`}
           tone={view.overdue.length ? "danger" : "ok"}
           onClick={() => go("ventas", "ver:vencidas")}
         />
         <Stat
           label="Por pagar a proveedores"
-          value={money(view.payable)}
+          value={amount(view.payable)}
           hint={`${view.payableList.length} compras`}
           more="Ver compras"
           onClick={() => go("compras", "ver:pendientes")}
         />
         <Stat
           label="Inventario al costo"
-          value={money(view.stockValue)}
+          value={amount(view.stockValue)}
           hint={`${qty(view.stockUnits)} unidades`}
           more="Ver productos"
           onClick={() => go("inventario", "ver:stock")}
@@ -154,7 +159,7 @@ export default function Home() {
           rows={view.months.map((m) => ({
             label: monthLabel(m.month).split(" ")[0],
             value: m.sales,
-            title: `${monthLabel(m.month)}: ${money(m.sales)} en ${m.count} facturas`,
+            title: `${monthLabel(m.month)}: ${amount(m.sales)} en ${m.count} facturas`,
           }))}
         />
       </section>
@@ -181,7 +186,7 @@ export default function Home() {
                       </small>
                     </span>
                     <span className="right">
-                      <strong>{money(s.balance)}</strong>
+                      <strong>{amount(s.balance)}</strong>
                       <small className="danger-text">{s.days_overdue} días</small>
                     </span>
                   </button>
@@ -238,7 +243,7 @@ export default function Home() {
                     </small>
                   </span>
                   <span className="right">
-                    <strong>{money(p.balance)}</strong>
+                    <strong>{amount(p.balance)}</strong>
                   </span>
                 </button>
               </li>

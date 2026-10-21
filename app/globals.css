@@ -1404,3 +1404,9 @@ button.file-link {
   border-radius: 10px;
   background: var(--surface);
 }
+
+/* Ojo para mostrar u ocultar los montos del Inicio */
+.title-row { display: flex; align-items: center; gap: 6px; }
+.eye-btn { display: inline-grid; place-items: center; color: var(--muted); }
+.eye-btn:hover { color: var(--ink); }
+.eye-btn[aria-pressed="false"] { color: var(--brand); }
