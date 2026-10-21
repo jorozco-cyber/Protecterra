@@ -1,0 +1,214 @@
+/* Seasonal presentation only; business states and document views keep their semantics. */
+:is(.shell, .seller, .login) {
+  --brand: #08473e;
+  --brand-soft: #e6efeb;
+  --bg: #f7f4ed;
+  --holiday-gold: #dfc38c;
+  background: var(--bg);
+}
+
+.holiday-green {
+  isolation: isolate;
+  background: radial-gradient(ellipse at 65% 10%, #126153 0%, transparent 67%),
+    linear-gradient(145deg, #08473e, #052e2b);
+}
+
+.holiday-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  user-select: none;
+}
+
+.holiday-snow {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: #fff;
+}
+
+.holiday-flake {
+  position: absolute;
+  top: -18px;
+  width: var(--flake-size);
+  height: 100%;
+  opacity: var(--flake-opacity);
+  animation: holiday-snowfall 20s linear infinite;
+}
+
+.holiday-flake svg,
+.holiday-flake i {
+  display: block;
+  width: var(--flake-size);
+  height: var(--flake-size);
+}
+
+.holiday-flake i { background: currentColor; border-radius: 50%; }
+
+@keyframes holiday-snowfall {
+  from { transform: translate3d(-8px, -5%, 0); }
+  to { transform: translate3d(10px, 110%, 0); }
+}
+
+.holiday-corner {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 215px;
+  height: auto;
+  opacity: 0.95;
+}
+
+.sidebar.holiday-green { border-right: 1px solid #be9b5840; padding-top: 34px; }
+.sidebar > :not(.holiday-backdrop),
+.topbar > :not(.holiday-backdrop),
+.login-brand > :not(.holiday-backdrop),
+.seller-head > :not(.holiday-backdrop) { position: relative; z-index: 1; }
+.sidebar .holiday-corner { width: 140px; transform: scaleX(-1); right: auto; left: 0; top: -39px; }
+.sidebar .nav-item.active { background: #ffffff1f; box-shadow: inset 3px 0 #dfc38c; }
+.sidebar .nav-item { text-shadow: 0 1px 5px #052e2b; }
+.sidebar .company-switch { background: #001b194f; }
+.sidebar:not(.open) .holiday-motion { animation-play-state: running; }
+
+.holiday-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 188px;
+  border: 1px solid #b59b623b;
+  border-radius: 14px;
+  color: #f7f4ed;
+  background: radial-gradient(ellipse at 60% 0, #116052 0%, transparent 75%), linear-gradient(120deg, #08473e, #052e2b);
+}
+
+.holiday-copy { position: relative; z-index: 1; padding: 22px 150px 0 24px; }
+.holiday-copy h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+  font-weight: 400;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  color: var(--holiday-gold, #dfc38c);
+  text-wrap: balance;
+}
+.holiday-copy p { font-size: 0.87rem; margin-top: 6px; color: #f3efe2d9; }
+.holiday-banner .holiday-corner { width: 180px; }
+.holiday-fields { position: absolute; bottom: 0; left: 0; width: 100%; height: 55px; pointer-events: none; opacity: 0.6; }
+
+/* The flight has its own row below the greeting; it cannot cross text or controls. */
+.holiday-flight {
+  --sleigh-width: clamp(220px, 30vw, 330px);
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 90px;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+.holiday-sleigh-mover { position: absolute; inset: 8px 0 0; animation: holiday-flight 30s linear infinite; animation-delay: -7s; }
+.holiday-sleigh-bob { width: var(--sleigh-width); animation: holiday-bob 4.8s ease-in-out infinite; }
+.holiday-sleigh { display: block; width: 100%; height: auto; }
+@keyframes holiday-flight {
+  0% { transform: translate3d(calc(-1 * var(--sleigh-width)), 0, 0); opacity: 1; }
+  74% { transform: translate3d(100%, 0, 0); opacity: 1; }
+  74.01%, 100% { transform: translate3d(calc(-1 * var(--sleigh-width)), 0, 0); opacity: 0; }
+}
+@keyframes holiday-bob { 0%, 100% { transform: translateY(3px); } 50% { transform: translateY(-3px); } }
+
+.holiday-pause {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  width: fit-content;
+  min-height: 32px;
+  margin: -3px 12px 5px auto;
+  padding: 4px 8px;
+  border-radius: 7px;
+  font-size: 0.71rem;
+  color: #f3efe2d9;
+  background: #052e2b96;
+  cursor: pointer;
+}
+.holiday-pause input[type="checkbox"] { width: 14px; height: 14px; accent-color: #dfc38c; }
+.holiday-pause:focus-within { outline: 2px solid #dfc38c; outline-offset: 2px; }
+.holiday-paused-label { display: none; }
+.holiday-pause:has(:checked) .holiday-pause-label { display: none; }
+.holiday-pause:has(:checked) .holiday-paused-label { display: inline; }
+:is(.shell, .seller, .login):has(.holiday-motion-toggle:checked) .holiday-motion { animation-play-state: paused; }
+
+.login-brand { position: relative; overflow: hidden; }
+.login-brand > .holiday-backdrop .holiday-corner { width: min(330px, 65%); right: auto; left: 0; transform: scaleX(-1); }
+.login-brand .holiday-banner-login { background: transparent; border: 0; border-radius: 0; margin: 0 -28px 16px; }
+.holiday-banner-login .holiday-copy { padding: 4px 28px 0; }
+.holiday-banner-login .holiday-copy h2 { font-size: 2.4rem; }
+.holiday-banner-login .holiday-copy p { max-width: none; }
+.holiday-banner-login .holiday-flight { --sleigh-width: clamp(230px, 32vw, 360px); height: 100px; }
+.holiday-banner-login .holiday-fields { height: 36px; }
+.login-brand .login-logo { flex: none; }
+
+.seller-head.holiday-green { display: block; position: relative; padding: 0; }
+.seller-head-content { display: flex; align-items: center; justify-content: space-between; gap: 14px; max-width: 980px; margin: 0 auto; padding: 22px 24px 2px; }
+.seller-head-content h1 { overflow-wrap: anywhere; }
+.seller-head-content .btn { flex-shrink: 0; }
+.seller-head > .holiday-backdrop .holiday-corner { width: 190px; opacity: 0.65; }
+.seller-head .holiday-banner-seller { max-width: 980px; margin: 0 auto; background: transparent; border: 0; border-radius: 0; min-height: 0; }
+.holiday-banner-seller .holiday-copy { padding-top: 16px; }
+.holiday-banner-seller .holiday-copy h2 { font-size: 1.9rem; }
+.holiday-banner-seller .holiday-flight { height: 84px; }
+.seller .segmented { max-width: 100%; }
+.home-stats, .seller-main > .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+@media (max-width: 900px) {
+  .topbar.holiday-green { background: linear-gradient(110deg, #08473e, #053a34); }
+  .topbar .holiday-backdrop { border-radius: 0; }
+  .sidebar:not(.open) .holiday-motion { animation-play-state: paused; }
+  .holiday-copy h2 { font-size: 1.7rem; }
+  .holiday-flight { --sleigh-width: 260px; }
+  .holiday-banner .holiday-corner { width: 135px; opacity: 0.8; }
+  .login-brand { padding-top: 36px; }
+  .login-brand .holiday-banner-login { margin: 0 -10px 2px; }
+  .holiday-banner-login .holiday-copy { padding-left: 10px; }
+  .holiday-banner-login .holiday-copy h2 { font-size: 2rem; }
+  .holiday-banner-login .holiday-flight { height: 85px; }
+}
+
+@media (max-width: 640px) {
+  .home-stats, .seller-main > .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .holiday-banner { min-height: 0; border-radius: 12px; }
+  .holiday-copy { padding: 18px 65px 0 18px; }
+  .holiday-copy h2 { font-size: 1.65rem; }
+  .holiday-copy p { font-size: 0.8rem; max-width: 29ch; }
+  .holiday-banner .holiday-corner { width: 104px; top: -8px; right: -12px; }
+  .holiday-flight { --sleigh-width: 232px; height: 76px; }
+  .holiday-sleigh-mover { top: 9px; }
+  .holiday-fields { height: 40px; }
+  .holiday-pause { font-size: 0.69rem; min-height: 36px; margin-right: 8px; }
+  .holiday-flake:nth-child(n+11) { display: none; }
+  .seller-head-content { padding: 18px 16px 0; align-items: flex-start; }
+  .seller-head-content h1 { font-size: 1.15rem; }
+  .seller-head-content .btn { font-size: 0.75rem; padding-inline: 9px; }
+  .seller-head .seller-logo { height: 32px; max-width: 180px; }
+  .seller-head > .holiday-backdrop .holiday-corner { width: 100px; top: -32px; opacity: 0.6; }
+  .holiday-banner-seller .holiday-copy { padding: 16px 18px 0; }
+  .holiday-banner-seller .holiday-copy h2 { font-size: 1.75rem; }
+  .holiday-banner-seller .holiday-flight { height: 75px; }
+  .seller-main { padding-top: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holiday-motion { animation: none !important; }
+  .holiday-snow, .holiday-pause { display: none; }
+  .holiday-sleigh-mover { transform: translateX(12%); opacity: 1; }
+}
+
+@media print {
+  .holiday-backdrop, .holiday-banner { display: none !important; }
+}

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Figtree } from "next/font/google";
 import "./globals.css";
+import "./holiday.css";
 
 const sans = Figtree({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "ProtecTerra", statusBarStyle: "default" },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#1f4d3a" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#08473e" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

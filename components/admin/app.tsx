@@ -18,6 +18,7 @@ import Reports from "./reports";
 import HistoryView from "./history";
 import AuditLog from "./audit-log";
 import { SignedInvoiceKeeper } from "./invoice-signature";
+import { HolidayBackdrop } from "../holiday";
 
 export type Section =
   | "inicio"
@@ -156,7 +157,8 @@ export default function AdminApp({ email }: { email: string }) {
 
   return (
     <div className="shell">
-      <header className="topbar">
+      <header className="topbar holiday-green">
+        <HolidayBackdrop sparse />
         <button
           className="icon-btn menu-btn"
           aria-label="Abrir menú"
@@ -172,7 +174,8 @@ export default function AdminApp({ email }: { email: string }) {
           <span className="brand-text small">{brand.name}</span>
         )}
       </header>
-      <nav className={"sidebar" + (menu ? " open" : "")} aria-label="Secciones">
+      <nav className={"sidebar holiday-green" + (menu ? " open" : "")} aria-label="Secciones">
+        <HolidayBackdrop corner />
         <div className="sidebar-brand">
           {brand.logo ? (
             <img src="/logo-blanco-simple.svg" alt="ProtecTerra" width={518} height={177} />

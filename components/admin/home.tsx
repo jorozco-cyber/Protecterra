@@ -4,6 +4,7 @@ import { useApp } from "./app";
 import { Bars, Empty, Stat } from "../ui";
 import { date, money, monthLabel, qty, today } from "@/lib/format";
 import { monthly } from "@/lib/calc";
+import { HolidayBanner } from "../holiday";
 
 export default function Home() {
   const { data, go } = useApp();
@@ -56,6 +57,8 @@ export default function Home() {
         </div>
       </div>
 
+      <HolidayBanner />
+
       {signedReceipts.length > 0 && (
         <p className="note ok" role="status">
           {signedReceipts.length === 1
@@ -101,7 +104,7 @@ export default function Home() {
           </button>
         </p>
       )}
-      <div className="stats">
+      <div className="stats home-stats">
         <Stat
           label="Ventas del mes"
           value={money(view.monthTotal)}
