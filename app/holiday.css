@@ -164,6 +164,7 @@
 .holiday-banner-seller .holiday-copy h2 { font-size: 1.9rem; }
 .holiday-banner-seller .holiday-flight { height: 84px; }
 .seller .segmented { max-width: 100%; }
+.home-stats, .seller-main > .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 @media (max-width: 900px) {
   .topbar.holiday-green { background: linear-gradient(110deg, #08473e, #053a34); }
@@ -180,6 +181,7 @@
 }
 
 @media (max-width: 640px) {
+  .home-stats, .seller-main > .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .holiday-banner { min-height: 0; border-radius: 12px; }
   .holiday-copy { padding: 18px 65px 0 18px; }
   .holiday-copy h2 { font-size: 1.65rem; }

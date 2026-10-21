@@ -104,7 +104,7 @@ export default function Home() {
           </button>
         </p>
       )}
-      <div className="stats">
+      <div className="stats home-stats">
         <Stat
           label="Ventas del mes"
           value={money(view.monthTotal)}
