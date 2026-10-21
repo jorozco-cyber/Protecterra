@@ -209,6 +209,96 @@
   .holiday-sleigh-mover { transform: translateX(12%); opacity: 1; }
 }
 
+/* ——— Acercar la decoración al diseño aprobado ——— */
+/* Menú: cielo estrellado, ramas en las esquinas y filo dorado */
+.sidebar.holiday-green {
+  border-right: 2px solid #c9a55c;
+  box-shadow: inset -1px 0 0 #f1d79a33, 4px 0 18px #052e2b40;
+  background: radial-gradient(ellipse at 30% 0, #0f5b4b 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, #0b4d40 0%, transparent 55%),
+    linear-gradient(170deg, #07443a, #042a24);
+}
+.sidebar .holiday-corner { width: 180px; top: -8px; }
+.sidebar.holiday-green .sidebar-brand { margin-top: 34px; }
+.sidebar .holiday-corner-bl { top: auto; bottom: -6px; left: -4px; width: 150px; transform: scale(-1, -1); opacity: 0.9; }
+.sidebar .holiday-corner-br { top: auto; bottom: -10px; right: -6px; left: auto; width: 115px; transform: scaleY(-1); opacity: 0.8; }
+.holiday-stars { position: absolute; inset: 0; }
+.holiday-stars i { position: absolute; border-radius: 50%; background: #fff7dc; opacity: 0.55; }
+.holiday-stars b { position: absolute; color: #f1d79a; font-weight: 400; line-height: 1; text-shadow: 0 0 6px #f1d79acc; animation: holiday-twinkle 3.4s ease-in-out infinite; }
+@keyframes holiday-twinkle { 0%, 100% { opacity: 0.35; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.1); } }
+
+/* Rama en la esquina superior derecha del panel */
+.main { position: relative; }
+.main > .page { position: relative; z-index: 1; }
+.holiday-main-corner { position: absolute; top: -18px; right: -6px; width: 200px; height: auto; pointer-events: none; z-index: 0; }
+
+/* Portada: título grande dorado, Santa dentro de la escena, campo con pinitos */
+.holiday-banner-panel {
+  min-height: 190px;
+  border-color: #c9a55c66;
+  background: radial-gradient(ellipse at 72% 0, #0f5a49 0%, transparent 62%),
+    radial-gradient(ellipse at 10% 100%, #0a4a3d 0%, transparent 55%),
+    linear-gradient(120deg, #063b32, #04251f);
+  box-shadow: 0 10px 28px #052e2b33;
+}
+.holiday-banner-panel .holiday-copy { padding: 28px 26% 70px 34px; }
+.holiday-banner-panel .holiday-copy h2 {
+  font-family: var(--font-holiday, "Cormorant Garamond"), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(2.3rem, 4.2vw, 3.7rem);
+  line-height: 1.02;
+  letter-spacing: -0.005em;
+  background: linear-gradient(180deg, #fff2c9 0%, #e7c97f 45%, #b8893a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 8px #00000055);
+}
+.holiday-banner-panel .holiday-copy p {
+  font-family: var(--font-holiday, "Cormorant Garamond"), Georgia, serif;
+  font-size: clamp(1.15rem, 1.8vw, 1.55rem);
+  font-weight: 500;
+  margin-top: 6px;
+  color: #f4ecd6;
+}
+.holiday-banner-panel .holiday-corner { width: 250px; top: -10px; right: -8px; }
+.holiday-banner-panel .holiday-fields { height: 78px; opacity: 1; }
+.holiday-pines { position: absolute; left: 0; right: 0; bottom: 14px; height: 30px; pointer-events: none; }
+.holiday-pines svg { position: absolute; bottom: 0; fill: #d9b469; opacity: 0.85; filter: drop-shadow(0 0 4px #d9b46966); }
+.holiday-banner-panel .holiday-flight { position: absolute; left: 48%; right: 210px; top: 96px; height: 84px; z-index: 1; --sleigh-width: clamp(200px, 19vw, 250px); }
+.holiday-banner-panel .holiday-pause { position: absolute; right: 12px; bottom: 8px; margin: 0; }
+
+/* Tarjetas del inicio: borde de color e ícono redondo, como en el diseño aprobado. */
+.home-stats .stat { position: relative; padding-right: 74px; border-left-width: 5px; }
+.home-stats .stat::after { content: ""; position: absolute; top: 14px; right: 14px; width: 46px; height: 46px; border-radius: 50%; background: var(--stat-ic-bg) var(--stat-ic) center / 22px no-repeat; }
+.home-stats .stat:nth-child(1) { border-left-color: #0b5a47; --stat-ic-bg: #e2efe8; --stat-ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b5a47' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3v18h18'/%3E%3Cpath d='M18 17V9'/%3E%3Cpath d='M13 17V5'/%3E%3Cpath d='M8 17v-3'/%3E%3C/svg%3E"); }
+.home-stats .stat:nth-child(2) { border-left-color: #b98a2f; --stat-ic-bg: #f8eed9; --stat-ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b98a2f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E"); }
+.home-stats .stat:nth-child(3) { border-left-color: #b3261e; --stat-ic-bg: #fbe5e2; --stat-ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b3261e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' x2='12' y1='8' y2='12'/%3E%3Cline x1='12' x2='12.01' y1='16' y2='16'/%3E%3C/svg%3E"); }
+.home-stats .stat:nth-child(4) { border-left-color: #0b5a47; --stat-ic-bg: #e2efe8; --stat-ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b5a47' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z'/%3E%3Cpath d='M14 2v4a2 2 0 0 0 2 2h4'/%3E%3Cpath d='M10 9H8'/%3E%3Cpath d='M16 13H8'/%3E%3Cpath d='M16 17H8'/%3E%3C/svg%3E"); }
+.home-stats .stat:nth-child(5) { border-left-color: #b98a2f; --stat-ic-bg: #f8eed9; --stat-ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b98a2f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7.5 4.27 9 5.15'/%3E%3Cpath d='M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z'/%3E%3Cpath d='m3.3 7 8.7 5 8.7-5'/%3E%3Cpath d='M12 22V12'/%3E%3C/svg%3E"); }
+.home-stats .stat:nth-child(6) { border-left-color: #0b5a47; --stat-ic-bg: #e2efe8; --stat-ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b5a47' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='8' cy='21' r='1'/%3E%3Ccircle cx='19' cy='21' r='1'/%3E%3Cpath d='M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12'/%3E%3C/svg%3E"); }
+.home-stats .stat:nth-child(3):not(.danger) { border-left-color: #0b5a47; --stat-ic-bg: #e2efe8; --stat-ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b5a47' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' x2='12' y1='8' y2='12'/%3E%3Cline x1='12' x2='12.01' y1='16' y2='16'/%3E%3C/svg%3E"); }
+
+@media (max-width: 900px) {
+  .holiday-main-corner { display: none; }
+  .sidebar.holiday-green .sidebar-brand { margin-top: 26px; }
+  .holiday-banner-panel .holiday-copy { padding: 22px 26% 70px 24px; }
+}
+@media (max-width: 640px) {
+  .holiday-banner-panel { min-height: 210px; }
+  .holiday-banner-panel .holiday-copy { padding: 18px 70px 96px 18px; }
+  .holiday-banner-panel .holiday-copy h2 { font-size: 2.2rem; }
+  .holiday-banner-panel .holiday-copy p { font-size: 1.12rem; max-width: none; }
+  .holiday-banner-panel .holiday-corner { width: 130px; top: -8px; right: -12px; }
+  .holiday-banner-panel .holiday-flight { top: auto; bottom: 34px; height: 70px; --sleigh-width: 210px; }
+  .home-stats .stat { padding-right: 14px; padding-top: 58px; }
+  .home-stats .stat::after { top: 12px; left: 14px; right: auto; width: 38px; height: 38px; background-size: 19px; }
+  .sidebar .holiday-corner-bl, .sidebar .holiday-corner-br { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .holiday-stars b { animation: none; opacity: 0.8; }
+}
+
 @media print {
-  .holiday-backdrop, .holiday-banner { display: none !important; }
+  .holiday-backdrop, .holiday-banner, .holiday-main-corner { display: none !important; }
 }

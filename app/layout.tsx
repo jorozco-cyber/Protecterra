@@ -1,9 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Figtree } from "next/font/google";
+import { Cormorant_Garamond, Figtree } from "next/font/google";
 import "./globals.css";
 import "./holiday.css";
 
 const sans = Figtree({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+/** Serif clásica para los títulos de la decoración navideña. */
+const holidaySerif = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  variable: "--font-holiday",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "ProtecTerra",
@@ -16,7 +23,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, them
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" className={sans.variable}>
+    <html lang="es" className={`${sans.variable} ${holidaySerif.variable}`}>
       <body>{children}</body>
     </html>
   );
