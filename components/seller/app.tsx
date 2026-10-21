@@ -7,6 +7,7 @@ import { date, matches, money, monthName, pct, plural, qty, today } from "@/lib/
 import { agingByCustomer, commissionStage, commissionTotals, recoveredOn } from "@/lib/calc";
 import type { CommissionStage } from "@/lib/calc";
 import StatementDialog from "../statement-dialog";
+import { HolidayBackdrop, HolidayBanner } from "../holiday";
 
 type Tab = "atrasos" | "ventas" | "comisiones";
 type Focus = "saldo" | "vencidas" | CommissionStage;
@@ -89,14 +90,18 @@ export default function SellerApp({
 
   return (
     <div className="seller">
-      <header className="seller-head">
-        <div>
-          <img className="seller-logo" src="/logo-blanco-simple.svg" alt="ProtecTerra" width={518} height={177} />
-          <h1>{portal?.seller.name ?? "Mi portal"}</h1>
+      <header className="seller-head holiday-green">
+        <HolidayBackdrop corner />
+        <div className="seller-head-content">
+          <div>
+            <img className="seller-logo" src="/logo-blanco-simple.svg" alt="ProtecTerra" width={518} height={177} />
+            <h1>{portal?.seller.name ?? "Mi portal"}</h1>
+          </div>
+          <button className="btn small" onClick={preview ? preview.onExit : logout}>
+            {preview ? "Salir de la vista previa" : "Cerrar sesión"}
+          </button>
         </div>
-        <button className="btn small" onClick={preview ? preview.onExit : logout}>
-          {preview ? "Salir de la vista previa" : "Cerrar sesión"}
-        </button>
+        <HolidayBanner variant="seller" />
       </header>
       {preview && (
         <p className="preview-note" role="status">

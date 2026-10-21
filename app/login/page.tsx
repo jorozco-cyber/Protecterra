@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { HolidayBackdrop, HolidayBanner } from "@/components/holiday";
 
 export default function Login() {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -37,7 +38,9 @@ export default function Login() {
 
   return (
     <main className="login">
-      <aside className="login-brand">
+      <aside className="login-brand holiday-green">
+        <HolidayBackdrop corner />
+        <HolidayBanner variant="login" />
         <img
           className="login-logo"
           src="/logo-blanco.svg"

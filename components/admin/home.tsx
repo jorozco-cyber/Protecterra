@@ -4,6 +4,7 @@ import { useApp } from "./app";
 import { Bars, Empty, Stat } from "../ui";
 import { date, money, monthLabel, qty, today } from "@/lib/format";
 import { monthly } from "@/lib/calc";
+import { HolidayBanner } from "../holiday";
 
 export default function Home() {
   const { data, go } = useApp();
@@ -55,6 +56,8 @@ export default function Home() {
           </button>
         </div>
       </div>
+
+      <HolidayBanner />
 
       {signedReceipts.length > 0 && (
         <p className="note ok" role="status">

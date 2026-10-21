@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 160" fill="#fff">
+  <defs>
+    <g id="reindeer">
+      <path d="M14 73C26 62 41 66 54 65C66 63 68 47 73 39L79 34L90 36L94 41L107 43Q113 48 105 52L91 53L84 70L77 80L85 86L107 76L114 78L110 84L85 96L72 88L68 92L83 102L104 93L109 96L106 102L83 112L62 94L51 87Q38 91 26 84L13 96L1 114L-6 114L-3 108L8 89L17 80L8 83L-9 99L-16 100L-15 95L5 73L1 66L4 61Z"/>
+      <path d="M78 38L70 30Q82 27 85 36M87 35L93 28Q98 35 91 41"/>
+      <g fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M82 36Q76 25 78 9L76 1M79 20L68 13L65 5M69 14L61 14L56 8M78 12L86 5L86 0M78 28L67 24L61 18M89 36Q94 22 90 12L92 4M94 23L103 18L107 8M102 18L111 19M92 14L85 10"/>
+      </g>
+    </g>
+  </defs>
+  <g fill="none" stroke="#fff" stroke-width="1.4" opacity=".9">
+    <path d="M98 86Q140 108 177 79Q232 104 306 69Q374 92 438 57Q501 78 570 45"/>
+    <path d="M99 90Q141 119 180 84Q232 114 309 74Q376 103 441 62Q505 89 573 50"/>
+  </g>
+  <g transform="translate(5 14)">
+    <path d="M14 104Q-1 76 24 73L34 77Q22 49 47 44Q66 49 65 73L75 86L88 86L94 77L105 80L101 96L95 104Z"/>
+    <path d="M52 67Q48 53 56 43L69 39L79 46L80 56L89 59L84 66L76 70L76 80L89 82L102 77L106 81L93 91L71 90L62 83Z"/>
+    <path d="M54 45Q59 24 74 29L88 40L91 49Q82 40 75 43Z"/>
+    <circle cx="92" cy="49" r="5"/>
+    <path d="M9 98Q4 89 0 94Q-4 102 8 109Q16 118 26 120H92Q117 120 122 97Q125 88 131 88Q139 89 133 96Q127 96 124 107Q116 132 90 132H29Q15 130 9 115Z"/>
+    <g fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round">
+      <path d="M20 139H106Q129 140 141 121Q146 112 139 110Q133 109 132 115"/>
+      <path d="M30 130L26 138M92 130L100 139"/>
+    </g>
+  </g>
+  <use href="#reindeer" transform="translate(185 31) scale(.91)"/>
+  <use href="#reindeer" transform="translate(314 22) scale(.91)"/>
+  <use href="#reindeer" transform="translate(443 13) scale(.91)"/>
+  <use href="#reindeer" transform="translate(572 4) scale(.91)"/>
+</svg>
