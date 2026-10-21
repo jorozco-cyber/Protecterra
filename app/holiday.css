@@ -112,7 +112,7 @@
 }
 .holiday-sleigh-mover { position: absolute; inset: 8px 0 0; animation: holiday-flight 30s linear infinite; animation-delay: -7s; }
 .holiday-sleigh-bob { width: var(--sleigh-width); animation: holiday-bob 4.8s ease-in-out infinite; }
-.holiday-sleigh { display: block; width: 100%; height: auto; }
+.holiday-sleigh { display: block; width: 100%; height: auto; filter: drop-shadow(0 0 2px rgb(255 255 255 / 70%)) drop-shadow(0 0 8px rgb(243 217 143 / 35%)); }
 @keyframes holiday-flight {
   0% { transform: translate3d(calc(-1 * var(--sleigh-width)), 0, 0); opacity: 1; }
   74% { transform: translate3d(100%, 0, 0); opacity: 1; }

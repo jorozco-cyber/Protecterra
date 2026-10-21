@@ -35,7 +35,7 @@ function SleighFlight() {
     <div className="holiday-flight" aria-hidden="true">
       <div className="holiday-sleigh-mover holiday-motion">
         <div className="holiday-sleigh-bob holiday-motion">
-          <img className="holiday-sleigh" src="/holiday/sleigh.svg" alt="" width="680" height="160" />
+          <img className="holiday-sleigh" src="/holiday/santa-sleigh.webp" alt="" width="900" height="207" />
         </div>
       </div>
     </div>
