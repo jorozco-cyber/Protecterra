@@ -116,12 +116,12 @@ export function greeting(date: string) {
 }
 
 /** Portada del inicio: la finca de noche, Santa cruzando la luna y el contador. */
-function FincaBanner() {
+function FincaBanner({ className = "" }: { className?: string }) {
   const [date, setDate] = useState("");
   useEffect(() => setDate(todayNi()), []);
   const g = date ? greeting(date) : null;
   return (
-    <section className="holiday-finca" aria-label="Saludo navideño">
+    <section className={`holiday-finca ${className}`.trim()} aria-label="Saludo navideño">
       <img className="holiday-finca-art" src="/holiday/finca-noche.webp" alt="" width="2400" height="461" aria-hidden="true" />
       <HolidayBackdrop />
       <div className="holiday-finca-fly" aria-hidden="true">
@@ -152,12 +152,13 @@ function FincaBanner() {
 
 export function HolidayBanner({ variant = "panel" }: { variant?: "panel" | "seller" | "login" }) {
   if (variant === "panel") return <FincaBanner />;
+  if (variant === "seller") return <FincaBanner className="holiday-finca-seller" />;
   return (
     <section className={`holiday-banner holiday-banner-${variant}`} aria-label="Saludo navideño">
       <img className="holiday-fields" src="/holiday/fields.svg" alt="" width="1200" height="100" aria-hidden="true" />
       <div className="holiday-copy">
         <h2>Felices fiestas</h2>
-        <p>{variant === "seller" ? "Gracias por hacer crecer ProtecTerra." : "Sigamos creciendo juntos."}</p>
+        <p>Sigamos creciendo juntos.</p>
       </div>
       <SleighFlight />
     </section>

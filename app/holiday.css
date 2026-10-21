@@ -132,15 +132,13 @@
 .holiday-banner-login .holiday-fields { height: 36px; }
 .login-brand .login-logo { flex: none; }
 
-.seller-head.holiday-green { display: block; position: relative; padding: 0; }
+.seller-head.holiday-green { display: flow-root; position: relative; padding: 0; }
 .seller-head-content { display: flex; align-items: center; justify-content: space-between; gap: 14px; max-width: 980px; margin: 0 auto; padding: 22px 24px 2px; }
 .seller-head-content h1 { overflow-wrap: anywhere; }
 .seller-head-content .btn { flex-shrink: 0; }
 .seller-head > .holiday-backdrop .holiday-corner { width: 190px; opacity: 0.65; }
-.seller-head .holiday-banner-seller { max-width: 980px; margin: 0 auto; background: transparent; border: 0; border-radius: 0; min-height: 0; }
-.holiday-banner-seller .holiday-copy { padding-top: 16px; }
-.holiday-banner-seller .holiday-copy h2 { font-size: 1.9rem; }
-.holiday-banner-seller .holiday-flight { height: 84px; }
+/* Portal del vendedor: la misma portada de la finca, dentro del encabezado verde. */
+.seller-head > .holiday-finca-seller { width: calc(100% - 48px); max-width: 932px; margin: 16px auto 24px; }
 .seller .segmented { max-width: 100%; }
 .home-stats, .seller-main > .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
@@ -174,9 +172,7 @@
   .seller-head-content .btn { font-size: 0.75rem; padding-inline: 9px; }
   .seller-head .seller-logo { height: 32px; max-width: 180px; }
   .seller-head > .holiday-backdrop .holiday-corner { width: 100px; top: -32px; opacity: 0.6; }
-  .holiday-banner-seller .holiday-copy { padding: 16px 18px 0; }
-  .holiday-banner-seller .holiday-copy h2 { font-size: 1.75rem; }
-  .holiday-banner-seller .holiday-flight { height: 75px; }
+  .seller-head > .holiday-finca-seller { width: calc(100% - 32px); margin: 14px auto 18px; }
   .seller-main { padding-top: 18px; }
 }
 
