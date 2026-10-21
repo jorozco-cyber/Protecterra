@@ -178,7 +178,7 @@ export default function AdminApp({ email }: { email: string }) {
         <HolidayBackdrop corner stars bottom />
         <div className="sidebar-brand">
           {brand.logo ? (
-            <img src="/logo-blanco-simple.svg" alt="ProtecTerra" width={518} height={177} />
+            <img src="/logo-blanco.svg" alt="ProtecTerra · Nutriendo el Éxito del Campo" width={518} height={177} />
           ) : (
             <span className="brand-text">{brand.name}</span>
           )}
