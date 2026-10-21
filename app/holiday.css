@@ -1,6 +1,6 @@
 /* Seasonal presentation only; business states and document views keep their semantics. */
 :is(.shell, .seller, .login) {
-  --brand: #08473e;
+  --brand: #0b3d2e;
   --brand-soft: #e6efeb;
   --bg: #f7f4ed;
   --holiday-gold: #dfc38c;
@@ -9,8 +9,9 @@
 
 .holiday-green {
   isolation: isolate;
-  background: radial-gradient(ellipse at 65% 10%, #126153 0%, transparent 67%),
-    linear-gradient(145deg, #08473e, #052e2b);
+  background: linear-gradient(115deg, transparent 0 34%, rgb(255 255 255 / 6%) 46%, rgb(255 255 255 / 2%) 52%, transparent 62%),
+    radial-gradient(ellipse at 60% 0, #1d5f47 0%, transparent 62%),
+    linear-gradient(160deg, #0e4635 0%, #0a3a2b 48%, #05231a 100%);
 }
 
 .holiday-backdrop {
@@ -69,7 +70,7 @@
 .seller-head > :not(.holiday-backdrop) { position: relative; z-index: 1; }
 .sidebar .holiday-corner { width: 140px; transform: scaleX(-1); right: auto; left: 0; top: -39px; }
 .sidebar .nav-item.active { background: #ffffff1f; box-shadow: inset 3px 0 #dfc38c; }
-.sidebar .nav-item { text-shadow: 0 1px 5px #052e2b; }
+.sidebar .nav-item { text-shadow: 0 1px 5px #05231a; }
 .sidebar .company-switch { background: #001b194f; }
 .sidebar:not(.open) .holiday-motion { animation-play-state: running; }
 
@@ -82,7 +83,7 @@
   border: 1px solid #b59b623b;
   border-radius: 14px;
   color: #f7f4ed;
-  background: radial-gradient(ellipse at 60% 0, #116052 0%, transparent 75%), linear-gradient(120deg, #08473e, #052e2b);
+  background: linear-gradient(115deg, transparent 0 34%, rgb(255 255 255 / 6%) 46%, rgb(255 255 255 / 2%) 52%, transparent 62%), radial-gradient(ellipse at 60% 0, #1d5f47 0%, transparent 70%), linear-gradient(120deg, #0b3d2e, #05231a);
 }
 
 .holiday-copy { position: relative; z-index: 1; padding: 22px 150px 0 24px; }
@@ -120,29 +121,6 @@
 }
 @keyframes holiday-bob { 0%, 100% { transform: translateY(3px); } 50% { transform: translateY(-3px); } }
 
-.holiday-pause {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 7px;
-  width: fit-content;
-  min-height: 32px;
-  margin: -3px 12px 5px auto;
-  padding: 4px 8px;
-  border-radius: 7px;
-  font-size: 0.71rem;
-  color: #f3efe2d9;
-  background: #052e2b96;
-  cursor: pointer;
-}
-.holiday-pause input[type="checkbox"] { width: 14px; height: 14px; accent-color: #dfc38c; }
-.holiday-pause:focus-within { outline: 2px solid #dfc38c; outline-offset: 2px; }
-.holiday-paused-label { display: none; }
-.holiday-pause:has(:checked) .holiday-pause-label { display: none; }
-.holiday-pause:has(:checked) .holiday-paused-label { display: inline; }
-:is(.shell, .seller, .login):has(.holiday-motion-toggle:checked) .holiday-motion { animation-play-state: paused; }
 
 .login-brand { position: relative; overflow: hidden; }
 .login-brand > .holiday-backdrop .holiday-corner { width: min(330px, 65%); right: auto; left: 0; transform: scaleX(-1); }
@@ -167,7 +145,7 @@
 .home-stats, .seller-main > .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 @media (max-width: 900px) {
-  .topbar.holiday-green { background: linear-gradient(110deg, #08473e, #053a34); }
+  .topbar.holiday-green { background: linear-gradient(115deg, transparent 0 34%, rgb(255 255 255 / 6%) 46%, rgb(255 255 255 / 2%) 52%, transparent 62%), linear-gradient(110deg, #0e4635, #072e22); }
   .topbar .holiday-backdrop { border-radius: 0; }
   .sidebar:not(.open) .holiday-motion { animation-play-state: paused; }
   .holiday-copy h2 { font-size: 1.7rem; }
@@ -190,7 +168,6 @@
   .holiday-flight { --sleigh-width: 232px; height: 76px; }
   .holiday-sleigh-mover { top: 9px; }
   .holiday-fields { height: 40px; }
-  .holiday-pause { font-size: 0.69rem; min-height: 36px; margin-right: 8px; }
   .holiday-flake:nth-child(n+11) { display: none; }
   .seller-head-content { padding: 18px 16px 0; align-items: flex-start; }
   .seller-head-content h1 { font-size: 1.15rem; }
@@ -205,7 +182,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .holiday-motion { animation: none !important; }
-  .holiday-snow, .holiday-pause { display: none; }
+  .holiday-snow { display: none; }
   .holiday-sleigh-mover { transform: translateX(12%); opacity: 1; }
 }
 
@@ -213,10 +190,11 @@
 /* Menú: cielo estrellado, ramas en las esquinas y filo dorado */
 .sidebar.holiday-green {
   border-right: 2px solid #c9a55c;
-  box-shadow: inset -1px 0 0 #f1d79a33, 4px 0 18px #052e2b40;
-  background: radial-gradient(ellipse at 30% 0, #0f5b4b 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 100%, #0b4d40 0%, transparent 55%),
-    linear-gradient(170deg, #07443a, #042a24);
+  box-shadow: inset -1px 0 0 #f1d79a33, 4px 0 18px #05231a40;
+  background: linear-gradient(115deg, transparent 0 34%, rgb(255 255 255 / 6%) 46%, rgb(255 255 255 / 2%) 52%, transparent 62%),
+    radial-gradient(ellipse at 30% 0, #155039 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 100%, #0d4130 0%, transparent 50%),
+    linear-gradient(172deg, #0b3a2c 0%, #082f23 50%, #041c14 100%);
 }
 .sidebar .holiday-corner { width: 180px; top: -8px; }
 .sidebar.holiday-green .sidebar-brand { margin-top: 34px; }
@@ -236,10 +214,11 @@
 .holiday-banner-panel {
   min-height: 190px;
   border-color: #c9a55c66;
-  background: radial-gradient(ellipse at 72% 0, #0f5a49 0%, transparent 62%),
-    radial-gradient(ellipse at 10% 100%, #0a4a3d 0%, transparent 55%),
-    linear-gradient(120deg, #063b32, #04251f);
-  box-shadow: 0 10px 28px #052e2b33;
+  background: linear-gradient(115deg, transparent 0 34%, rgb(255 255 255 / 6%) 46%, rgb(255 255 255 / 2%) 52%, transparent 62%),
+    radial-gradient(ellipse at 72% 0, #1a5a43 0%, transparent 60%),
+    radial-gradient(ellipse at 10% 100%, #0f4433 0%, transparent 55%),
+    linear-gradient(120deg, #0b3d2e 0%, #072e22 55%, #04201a 100%);
+  box-shadow: 0 10px 28px #05231a40, inset 0 1px 0 rgb(255 255 255 / 6%);
 }
 .holiday-banner-panel .holiday-copy { padding: 28px 26% 70px 34px; }
 .holiday-banner-panel .holiday-copy h2 {
@@ -266,7 +245,6 @@
 .holiday-pines { position: absolute; left: 0; right: 0; bottom: 14px; height: 30px; pointer-events: none; }
 .holiday-pines svg { position: absolute; bottom: 0; fill: #d9b469; opacity: 0.85; filter: drop-shadow(0 0 4px #d9b46966); }
 .holiday-banner-panel .holiday-flight { position: absolute; left: 48%; right: 210px; top: 96px; height: 84px; z-index: 1; --sleigh-width: clamp(200px, 19vw, 250px); }
-.holiday-banner-panel .holiday-pause { position: absolute; right: 12px; bottom: 8px; margin: 0; }
 
 /* Tarjetas del inicio: borde de color e ícono redondo, como en el diseño aprobado. */
 .home-stats .stat { position: relative; padding-right: 74px; border-left-width: 5px; }
@@ -302,3 +280,8 @@
 @media print {
   .holiday-backdrop, .holiday-banner, .holiday-main-corner { display: none !important; }
 }
+
+/* Nieve más visible: copos blancos más grandes con brillo suave. */
+.holiday-flake { color: #ffffff; }
+.holiday-flake.star svg { filter: drop-shadow(0 0 3px rgb(255 255 255 / 70%)); }
+.holiday-flake i { box-shadow: 0 0 4px rgb(255 255 255 / 80%); }

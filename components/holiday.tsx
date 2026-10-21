@@ -49,25 +49,28 @@ export function HolidayBackdrop({
     <div className={`holiday-backdrop${sparse ? " holiday-backdrop-sparse" : ""}`} aria-hidden="true">
       {stars && <Stars />}
       <div className="holiday-snow">
-        {Array.from({ length: sparse ? 8 : 18 }, (_, i) => (
-          <span
-            className="holiday-flake holiday-motion"
-            key={i}
-            style={{
-              left: `${(i * 37 + 7) % 98}%`,
-              "--flake-size": `${i % 3 === 0 ? 9 + (i % 5) : 2 + (i % 3)}px`,
-              "--flake-opacity": i % 3 === 0 ? 0.44 : 0.3,
-              animationDuration: `${14 + (i % 7) * 2}s`,
-              animationDelay: `${-((i * 7 + 3) % 29)}s`,
-            } as CSSProperties}
-          >
-            {i % 3 === 0 ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M12 1v22M2.5 6.5l19 11M2.5 17.5l19-11M8 4l4 3 4-3M8 20l4-3 4 3M3 10l4-2-.5-5M21 14l-4 2 .5 5M6.5 21 7 16l-4-2M17.5 3 17 8l4 2" />
-              </svg>
-            ) : <i />}
-          </span>
-        ))}
+        {Array.from({ length: sparse ? 12 : 26 }, (_, i) => {
+          const flake = i % 5 !== 1 && i % 5 !== 3; // 3 de cada 5 son copos; el resto, puntos de nieve
+          return (
+            <span
+              className={"holiday-flake holiday-motion" + (flake ? " star" : "")}
+              key={i}
+              style={{
+                left: `${(i * 37 + 7) % 98}%`,
+                "--flake-size": `${flake ? 11 + ((i * 7) % 9) : 3 + (i % 3)}px`,
+                "--flake-opacity": flake ? 0.78 + ((i * 3) % 4) * 0.06 : 0.75,
+                animationDuration: `${12 + (i % 7) * 2}s`,
+                animationDelay: `${-((i * 7 + 3) % 29)}s`,
+              } as CSSProperties}
+            >
+              {flake ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
+                  <path d="M12 1v22M2.5 6.5l19 11M2.5 17.5l19-11M8 4l4 3 4-3M8 20l4-3 4 3M3 10l4-2-.5-5M21 14l-4 2 .5 5M6.5 21 7 16l-4-2M17.5 3 17 8l4 2" />
+                </svg>
+              ) : <i />}
+            </span>
+          );
+        })}
       </div>
       {corner && <img className="holiday-corner" src="/holiday/evergreen.svg" alt="" width="360" height="260" />}
       {bottom && (
@@ -131,11 +134,6 @@ export function HolidayBanner({ variant = "panel" }: { variant?: "panel" | "sell
         </p>
       </div>
       <SleighFlight />
-      <label className="holiday-pause">
-        <input className="holiday-motion-toggle" type="checkbox" aria-label="Pausar animaciones navideñas" />
-        <span className="holiday-pause-label">Pausar animación</span>
-        <span className="holiday-paused-label">Animación pausada</span>
-      </label>
     </section>
   );
 }
